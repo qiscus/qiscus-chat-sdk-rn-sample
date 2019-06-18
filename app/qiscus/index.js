@@ -1,5 +1,6 @@
 import xs from 'xstream';
 import mitt from 'mitt';
+import axios from 'axios';
 import QiscusSDK from 'qiscus-sdk-core';
 
 export const qiscus = new QiscusSDK();
@@ -62,3 +63,25 @@ export const messageRead$ = () => event$.filter(it => it.kind === 'comment-read'
   .map(it => it.data);
 export const messageDelivered$ = () => event$.filter(it => it.kind === 'comment-delivered')
   .map(it => it.data);
+
+export function setDeviceToken(token) {
+  const userToken = qiscus.userData.token;
+  return axios
+    .post(`${qiscus.baseURL}/api/v2/mobile/set_user_device_token`, {
+      token: userToken,
+      device_token: token,
+      device_platform: 'rn',
+    }, {
+      headers: {
+        'qiscus_sdk_app_id': qiscus.AppId,
+        'qiscus_sdk_token': userToken,
+        'qiscus_sdk_user_id': qiscus.user_id,
+      }
+    })
+    .then((res) => {
+      console.log('success sending device token', res)
+    })
+    .catch((error) => {
+      console.log('failed sending device token', error)
+    })
+}

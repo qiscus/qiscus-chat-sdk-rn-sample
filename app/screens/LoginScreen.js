@@ -28,7 +28,6 @@ export default class LoginScreen extends React.Component {
   }
 
   componentDidMount() {
-
     this.subscription = Qiscus.login$()
       .filter(loginData => loginData != null)
       .subscribe({
@@ -54,7 +53,6 @@ export default class LoginScreen extends React.Component {
   }
 
   onSubmit = () => {
-    console.log('on submit', this.state.userId, this.state.userKey);
     Qiscus.qiscus.setUser(this.state.userId, this.state.userKey)
       .then(() => {
         console.log('Success')

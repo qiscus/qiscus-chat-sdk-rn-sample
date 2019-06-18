@@ -6,8 +6,12 @@ import {
   TouchableOpacity,
   FlatList,
 } from 'react-native';
+import AsyncStorage from '@react-native-community/async-storage';
 
 import * as Qiscus from 'qiscus';
+import * as Firebase from 'utils/firebase';
+import p from 'utils/p';
+
 import RoomItem from 'components/RoomItem';
 import Toolbar from 'components/Toolbar';
 
@@ -37,6 +41,33 @@ export default class RoomListScreen extends React.Component {
       .subscribe({
         next: (message) => {
           this._onNewMessage$(message);
+        }
+      });
+
+    Firebase.onNotificationOpened$()
+      .subscribe({
+        next(data) {
+          const notification = data.notification;
+          AsyncStorage.setItem('lastNotificationId', notification.notificationId);
+
+          const roomId = notification.data.qiscus_room_id;
+          this.props.navigation.push('Chat', {
+            roomId,
+          })
+        }
+      });
+    Firebase.getInitialNotification()
+      .then(async (data) => {
+        console.log('initial notif', data);
+        const notification = data.notification;
+
+        const [err, lastNotificationId] = await p(AsyncStorage.getItem('lastNotificationId'));
+        if (err) return console.log('error getting last notif id');
+
+        if (lastNotificationId !== notification.notificationId) {
+          AsyncStorage.setItem('lastNotificationId', notification.notificationId);
+          const roomId = data.notification.data.qiscus_room_id;
+          this.props.navigation.push('Chat', {roomId})
         }
       })
   }

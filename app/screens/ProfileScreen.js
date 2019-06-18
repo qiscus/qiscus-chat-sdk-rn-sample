@@ -94,8 +94,7 @@ export default class ProfileScreen extends React.Component {
           <ImageBackground
             style={styles.avatarPreview}
             source={{uri: avatarURI}}>
-            <LinearGradient
-              colors={['#3330', 'rgba(0, 0, 0, 0.3)',]}
+            <View
               style={styles.changeAvatarContainer}>
               <TouchableOpacity
                 onPress={this._onEditAvatar}
@@ -104,7 +103,7 @@ export default class ProfileScreen extends React.Component {
                   source={require('assets/ic_image_attachment.png')}
                   style={{height: 35, width: 35}}/>
               </TouchableOpacity>
-            </LinearGradient>
+            </View>
           </ImageBackground>
         </View>
 
