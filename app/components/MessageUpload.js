@@ -1,17 +1,12 @@
-import React from 'react';
-import {
-  View,
-  StyleSheet,
-  Text,
-  Image,
-} from 'react-native';
+import React from "react";
+import { View, StyleSheet, Text, Image } from "react-native";
 
 export default class MessageUpload extends React.PureComponent {
   render() {
-    const imageURI = 'https://via.placeholder.com/500x500';
-    const caption = 'Ini caption';
-    const filename = 'Ini-filename.pdf';
-    const type = 'image';
+    const imageURI = this.props.message.fileURI;
+    const caption = "Uploading";
+    const filename = "Ini-filename.pdf";
+    const type = "image";
     return (
       <>
         <View style={styles.container}>
@@ -20,21 +15,20 @@ export default class MessageUpload extends React.PureComponent {
               <View style={styles.progressInner} />
             </View>
           </View>
-          {type === 'image' && (
-            <Image style={styles.imagePreview}
-                   source={{ uri: imageURI }} />
+          {type === "image" && (
+            <Image style={styles.imagePreview} source={{ uri: imageURI }} />
           )}
-          {type === 'file' && (
+          {type === "file" && (
             <View>
-              <Image style={styles.icon}
-                     source={require('assets/ic_file_attachment.png')} />
+              <Image
+                style={styles.icon}
+                source={require("assets/ic_file_attachment.png")}
+              />
               <Text style={styles.filename}>{filename}</Text>
             </View>
           )}
         </View>
-        <Text style={styles.caption}>
-          {caption}
-        </Text>
+        <Text style={styles.caption}>{caption}</Text>
       </>
     );
   }
@@ -47,6 +41,10 @@ const styles = StyleSheet.create({
   progressInner: {},
   icon: {},
   filename: {},
-  imagePreview: {},
-  caption: {},
+  imagePreview: {
+    resizeMode: "cover",
+    height: 200,
+    width: 200
+  },
+  caption: {}
 });

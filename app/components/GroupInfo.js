@@ -1,0 +1,218 @@
+import React from "react";
+import {
+  View,
+  TouchableWithoutFeedback,
+  TouchableOpacity,
+  TextInput,
+  Image,
+  FlatList,
+  StyleSheet,
+  Text
+} from "react-native";
+import css from "css-to-rn.macro";
+
+import * as Qiscus from "qiscus";
+import Toolbar from "components/Toolbar";
+import ContactItem from "components/ContactItem";
+
+export default class GroupInfo extends React.Component {
+  state = {
+    avatarURL: null,
+    name: null
+  };
+
+  get selectedContacts() {
+    return this.props.contacts;
+  }
+
+  render() {
+    return (
+      <View style={styles.container}>
+        <Toolbar
+          title="Group Info"
+          renderLeftButton={() => (
+            <TouchableOpacity
+              style={styles.toolbarBtn}
+              onPress={() => this.props.onBack()}
+            >
+              <Image
+                style={styles.icon}
+                source={require("assets/ic_back.png")}
+              />
+            </TouchableOpacity>
+          )}
+          renderRightButton={() => (
+            <TouchableOpacity
+              style={styles.toolbarBtn}
+              onPress={this._createGroup}
+            >
+              <Image
+                style={styles.icon}
+                source={require("assets/ic_check.png")}
+              />
+            </TouchableOpacity>
+          )}
+        />
+
+        <View style={styles.groupInfoContainer}>
+          <View style={styles.avatarContainer}>
+            <Image
+              style={styles.avatarPreview}
+              source={{ uri: "https://via.placeholder.com/200x200" }}
+            />
+            <TouchableWithoutFeedback style={styles.avatarPickerBtn}>
+              <Image
+                style={[styles.icon, styles.iconAvatarPicker]}
+                source={require("assets/ic_image_attachment.png")}
+              />
+            </TouchableWithoutFeedback>
+          </View>
+          <View style={styles.groupNameContainer}>
+            <Text style={styles.groupNameLabel}>Group Name</Text>
+            <TextInput
+              style={styles.groupNameInput}
+              placeholder="Group name"
+              onChangeText={text => this.setState({ name: text })}
+            />
+          </View>
+        </View>
+        <View style={styles.participantListContainer}>
+          <View style={styles.participantsHeader}>
+            <Text style={styles.participantsHeaderText}>Participants</Text>
+          </View>
+          <FlatList
+            style={styles.participantList}
+            initialNumToRender={10}
+            keyExtractor={item => `${item.id}`}
+            data={this.selectedContacts}
+            renderItem={data => (
+              <ContactItem
+                contact={data.item}
+                renderButton={() => (
+                  <TouchableWithoutFeedback
+                    style={styles.removeBtn}
+                    onPress={() => this._onRemoveContact(data.item)}
+                  >
+                    <Image
+                      style={[styles.icon, styles.selected]}
+                      source={require("assets/delete.png")}
+                    />
+                  </TouchableWithoutFeedback>
+                )}
+              />
+            )}
+          />
+        </View>
+      </View>
+    );
+  }
+
+  _onRemoveContact = contact => {
+    this.props.onRemove(contact);
+  };
+  _createGroup = () => {
+    const name = this.state.name;
+    const userIds = this.props.contacts.map(it => it.email);
+    Qiscus.qiscus
+      .createGroupRoom(name, userIds, {})
+      .then(room => {
+        this.props.navigation.replace("Chat", {
+          roomId: room.id
+        });
+      })
+      .catch(error => {
+        console.log("error", error);
+      });
+  };
+}
+
+const styles = StyleSheet.create(css`
+  .groupInfoContainer {
+    flex: 0 0 100px;
+    display: flex;
+    flex-direction: row;
+  }
+  .avatarContainer {
+    flex: 0 0 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .avatarPreview {
+    height: 64px;
+    width: 64px;
+    border-radius: 50px;
+    position: absolute;
+  }
+  .avatarPickerBtn {
+    position: absolute;
+    height: 64px;
+    width: 64px;
+    border-radius: 50px;
+    /* background-color: rgba(0,0,0,0.3); */
+    background-color: #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .groupNameContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+    margin-right: 15px;
+  }
+  .groupNameLabel {
+    font-weight: 600;
+    font-size: 10px;
+    text-transform: uppercase;
+    color: #979797;
+  }
+  .groupNameInput {
+    padding: 10px 5px;
+    border-bottom-width: 1px;
+    border-bottom-color: #666;
+  }
+
+  .container {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  .participantListContainer {
+    flex: 1;
+    display: flex;
+    background: white;
+    overflow: hidden;
+  }
+  .participantsHeader {
+    flex: 0;
+    flex-basis: 45px;
+    flex-direction: row;
+    height: 45px;
+    background: #fafafa;
+    align-items: flex-end;
+    display: flex;
+    padding: 10px;
+  }
+  .participantsHeaderText {
+    font-weight: 600;
+    font-size: 10px;
+    text-transform: uppercase;
+    color: #666;
+  }
+  .participantList {
+    padding: 10px;
+  }
+  .removeBtn {
+    flex: 0;
+    flex-basis: 30px;
+    width: 30px;
+    height: 30px;
+    padding: 10px;
+    background-color: #333;
+  }
+`);
