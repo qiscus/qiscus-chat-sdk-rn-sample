@@ -172,9 +172,11 @@ const styles = StyleSheet.create({
     resizeMode: "contain"
   },
   avatar: {
-    height: 30,
-    width: 30,
-    resizeMode: "cover",
-    borderRadius: 50
+    flex: 0,
+    flexBasis: 40,
+    flexShrink: 0,
+    height: 40,
+    width: 40,
+    borderRadius: 50,
   }
 });
