@@ -1,51 +1,77 @@
-import React from 'react'
-import { StyleSheet, View, StatusBar } from 'react-native'
-import { createStackNavigator, createAppContainer } from 'react-navigation'
+import React from "react";
+import { StyleSheet, StatusBar } from "react-native";
+import { createStackNavigator, createAppContainer } from "react-navigation";
+import AsyncStorage from "@react-native-community/async-storage";
 
-import * as Qiscus from 'qiscus'
-import * as Firebase from 'utils/firebase'
-import LoginScreen from 'screens/LoginScreen'
-import ProfileScreen from 'screens/ProfileScreen'
-import RoomListScreen from 'screens/RoomListScreen'
-import ChatScreen from 'screens/ChatScreen'
-import UserListScreen from 'screens/UserListScreen'
+import * as Qiscus from "qiscus";
+import * as Firebase from "utils/firebase";
+import LoginScreen from "screens/LoginScreen";
+import ProfileScreen from "screens/ProfileScreen";
+import RoomListScreen from "screens/RoomListScreen";
+import ChatScreen from "screens/ChatScreen";
+import UserListScreen from "screens/UserListScreen";
+import CreateGroupScreen from "screens/CreateGroupScreen";
+import RoomInfoScreen from "screens/RoomInfo";
 
-const AppNavigator = createStackNavigator({
-  Login: LoginScreen,
-  Profile: ProfileScreen,
-  RoomList: RoomListScreen,
-  Chat: ChatScreen,
-  UserList: UserListScreen,
-}, { headerMode: 'none', initialRouteName: 'Login' })
-const AppContainer = createAppContainer(AppNavigator)
+const AppNavigator = createStackNavigator(
+  {
+    Login: LoginScreen,
+    Profile: ProfileScreen,
+    RoomList: RoomListScreen,
+    Chat: ChatScreen,
+    UserList: UserListScreen,
+    CreateGroup: CreateGroupScreen,
+    RoomInfo: RoomInfoScreen
+  },
+  { headerMode: "none", initialRouteName: "Login" }
+);
+const AppContainer = createAppContainer(AppNavigator);
 
 export default class App extends React.Component {
+  componentWillMount() {
+    GLOBAL.Qiscus = Qiscus;
+    Qiscus.init();
+    AsyncStorage.getItem("qiscus").then(
+      res => {
+        if (res == null) return;
+        const data = JSON.parse(res);
+        Qiscus.qiscus.setUserWithIdentityToken({ user: data });
+      },
+      error => {
+        console.log("error getting login data", error);
+      }
+    );
+  }
+
   componentDidMount() {
-    Qiscus.init()
-    Firebase.initiate$()
+    this.subscription = Firebase.initiate$()
       .map(() => Firebase.createChannel())
-      .map(() => Firebase.requestPermission$()).flatten()
-      .map(() => Firebase.onNotification$()).flatten()
-      .map((notif) => Firebase.createNotification(notif))
+      .map(() => Firebase.requestPermission$())
+      .flatten()
+      .map(() => Firebase.onNotification$())
+      .flatten()
+      .map(it => Firebase.createNotification(it))
       .subscribe({
-        next: (notif) => {
-          Firebase.displayNotification(notif)
+        next: notification => {
+          Firebase.displayNotification(notification);
         },
-        error: (error) => console.log('error initiate firebase', error)
-      })
+        error: error => console.log("error initiate firebase", error)
+      });
   }
 
   componentWillUnmount() {
-    if (this.stop != null) {
-      this.stop()
-    }
+    if (this.subscription != null) this.subscription.unsubscribe();
   }
+
   render() {
     return (
       <>
-        <AppContainer style={styles.container} />
+        <AppContainer
+          style={styles.container}
+          ref={ref => (this.navigation = ref && ref._navigation)}
+        />
       </>
-    )
+    );
   }
 }
 
@@ -53,4 +79,4 @@ const styles = StyleSheet.create({
   container: {
     marginTop: StatusBar.currentHeight
   }
-})
+});
