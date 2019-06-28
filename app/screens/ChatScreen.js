@@ -3,8 +3,9 @@ import {
   StyleSheet,
   Image,
   TouchableOpacity,
-  View,
-  StatusBar
+  Platform,
+  StatusBar,
+  KeyboardAvoidingView,
 } from "react-native";
 import ImagePicker from "react-native-image-picker";
 import toast from "utils/toast";
@@ -79,10 +80,11 @@ export default class ChatScreen extends React.Component {
     const avatarURL = room ? room.avatar : null;
 
     return (
-      <View
+      <KeyboardAvoidingView
         style={styles.container}
-        keyboardVerticalOffset={StatusBar.currentHeight}
         behavior="padding"
+        keyboardVerticalOffset={Platform.OS === "ios" ? 20 : StatusBar.currentHeight}
+        style={{ flex: 1 }}
         enabled
       >
         <Toolbar
@@ -132,7 +134,7 @@ export default class ChatScreen extends React.Component {
           onSubmit={this._submitMessage}
           onSelectFile={this._onSelectFile}
         />
-      </View>
+      </KeyboardAvoidingView>
     );
   }
 
