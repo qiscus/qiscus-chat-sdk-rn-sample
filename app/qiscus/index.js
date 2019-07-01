@@ -59,9 +59,9 @@ export const init = () => {
       presenceCallback(data) {
         data = data.split(":");
         const isOnline = data[0] === "1";
-        const lastOnline = new Date(data[1]);
+        const lastOnline = new Date(Number(data[1]));
         event.emit("event", {
-          kind: "presence",
+          kind: "online-presence",
           data: { isOnline, lastOnline }
         });
       },
@@ -97,6 +97,10 @@ export const messageRead$ = () =>
   event$.filter(it => it.kind === "comment-read").map(it => it.data);
 export const messageDelivered$ = () =>
   event$.filter(it => it.kind === "comment-delivered").map(it => it.data);
+export const onlinePresence$ = () =>
+  event$.filter(it => it.kind === "online-presence").map(it => it.data);
+export const typing$ = () =>
+  event$.filter(it => it.kind === "typing").map(it => it.data);
 
 export function setDeviceToken(token) {
   console.log("qiscus.isLogin", qiscus.isLogin);
