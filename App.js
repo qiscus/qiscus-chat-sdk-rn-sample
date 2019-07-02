@@ -44,7 +44,6 @@ export default class App extends React.Component {
   }
 
   componentDidMount() {
-    console.log('Height', Platform.OS, StatusBar.currentHeight);
     this.subscription = Firebase.initiate$()
       .map(() => Firebase.createChannel())
       .map(() => Firebase.requestPermission$())

@@ -19,18 +19,22 @@ export default class LoginScreen extends React.Component {
   };
 
   componentDidMount() {
-    const subscription = Qiscus.login$()
+    this.subscription = Qiscus.login$()
       .map(data => data.user)
+      .take(1)
       .subscribe({
         next: data => {
           AsyncStorage.setItem("qiscus", JSON.stringify(data))
             .then(() => {
               this.setState({ isLogin: true });
-              subscription.unsubscribe();
             })
-            .catch(error => {});
+            .catch(() => {});
         }
       });
+  }
+
+  componentWillUnmount() {
+    this.subscription.unsubscribe();
   }
 
   onSubmit = () => {

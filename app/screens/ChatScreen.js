@@ -1,15 +1,18 @@
 import React from "react";
 import {
-  StyleSheet,
   Image,
-  TouchableOpacity,
-  Platform,
   StatusBar,
-  KeyboardAvoidingView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from "react-native";
 import ImagePicker from "react-native-image-picker";
+import css from "css-to-rn.macro";
+import debounce from "lodash.debounce";
+import xs from "xstream";
+import dateFns from "date-fns";
 import toast from "utils/toast";
-import p from "utils/p";
 
 import * as Qiscus from "qiscus";
 import Toolbar from "components/Toolbar";
@@ -21,24 +24,29 @@ export default class ChatScreen extends React.Component {
   state = {
     room: null,
     messages: {},
-    isLoadMoreable: true
+    isLoadMoreable: true,
+    isOnline: false,
+    isTyping: false,
+    lastOnline: null,
+    typingUsername: null
   };
 
   componentDidMount() {
     const roomId = this.props.navigation.getParam("roomId", null);
     if (roomId == null) return this.props.navigation.replace("RoomList");
-    Qiscus.isLogin$()
-      .filter(isLogin => isLogin === true)
+    const subscription1 = Qiscus.isLogin$()
       .take(1)
+      .map(() => xs.from(Qiscus.qiscus.getRoomById(roomId)))
+      .flatten()
       .subscribe({
-        next: async () => {
-          const [err1, room] = await p(Qiscus.qiscus.getRoomById(roomId));
-          if (err1) console.log("error when getting room", err1);
-          this.setState({ room });
-
-          const [err2, messages] = await p(Qiscus.qiscus.loadComments(roomId));
-          if (err2) console.log("error when getting messages", err2);
-
+        next: room => this.setState({ room })
+      });
+    const subscription2 = Qiscus.isLogin$()
+      .take(1)
+      .map(() => xs.from(Qiscus.qiscus.loadComments(roomId)))
+      .flatten()
+      .subscribe({
+        next: messages => {
           const message = messages[0] || {};
           const isLoadMoreable = message.comment_before_id !== 0;
           const formattedMessages = messages.reduce((result, message) => {
@@ -52,39 +60,41 @@ export default class ChatScreen extends React.Component {
         }
       });
 
-    this.subscription1 = Qiscus.newMessage$().subscribe({
-      next: message => this._onNewMessage(message)
-    });
-    this.subscription2 = Qiscus.messageRead$().subscribe({
-      next: data => this._onMessageRead(data)
-    });
-    this.subscription3 = Qiscus.messageDelivered$().subscribe({
-      next: data => this._onMessageDelivered(data)
-    });
+    this.subscription = xs
+      .merge(
+        Qiscus.newMessage$().map(this._onNewMessage),
+        Qiscus.messageRead$().map(this._onMessageRead),
+        Qiscus.messageDelivered$().map(this._onMessageDelivered),
+        Qiscus.onlinePresence$().map(this._onOnline),
+        Qiscus.typing$()
+          .filter(it => Number(it.room_id) === this.state.room.id)
+          .map(this._onTyping)
+      )
+      .subscribe({
+        next: () => {},
+        error: error => console.log("subscription error", error)
+      });
   }
 
   componentWillUnmount() {
     Qiscus.qiscus.exitChatRoom();
-    if (this.subscription != null) {
-      this.subscription.unsubscribe();
-    }
-    this.subscription1 && this.subscription1.unsubscribe();
-    this.subscription2 && this.subscription2.unsubscribe();
-    this.subscription3 && this.subscription3.unsubscribe();
+
+    this.subscription && this.subscription.unsubscribe();
   }
 
   render() {
-    const { room } = this.state;
+    const { room, isTyping, isOnline, lastOnline, typingUsername } = this.state;
     const messages = this.messages;
     const roomName = room ? room.name : "Chat";
     const avatarURL = room ? room.avatar : null;
 
+    const showTyping = room != null && !this.isGroup && isTyping;
+
     return (
-      <KeyboardAvoidingView
+      <View
         style={styles.container}
+        keyboardVerticalOffset={StatusBar.currentHeight}
         behavior="padding"
-        keyboardVerticalOffset={Platform.OS === "ios" ? 20 : StatusBar.currentHeight}
-        style={{ flex: 1 }}
         enabled
       >
         <Toolbar
@@ -95,7 +105,8 @@ export default class ChatScreen extends React.Component {
               onPress={() => this.props.navigation.replace("RoomList")}
               style={{
                 display: "flex",
-                flexDirection: "row"
+                flexDirection: "row",
+                flex: 0
               }}
             >
               <Image
@@ -118,6 +129,19 @@ export default class ChatScreen extends React.Component {
               />
             </TouchableOpacity>
           )}
+          renderMeta={() => (
+            <View style={styles.onlineStatus}>
+              {this._renderOnlineStatus()}
+              {showTyping && (
+                <Text style={styles.typingText}>
+                  {typingUsername} is typing...
+                </Text>
+              )}
+              {this.isGroup && (
+                <Text style={styles.typingText}>{this.participants}</Text>
+              )}
+            </View>
+          )}
         />
 
         {messages.length === 0 && <Empty />}
@@ -134,10 +158,53 @@ export default class ChatScreen extends React.Component {
           onSubmit={this._submitMessage}
           onSelectFile={this._onSelectFile}
         />
-      </KeyboardAvoidingView>
+      </View>
     );
   }
 
+  _renderOnlineStatus = () => {
+    const { isGroup } = this;
+    const { isTyping, isOnline, lastOnline, room } = this.state;
+    if (room == null) return;
+    if (isGroup || isTyping) return;
+
+    const lastOnlineText = dateFns.isSameDay(lastOnline, new Date())
+      ? dateFns.format(lastOnline, "hh:mm")
+      : dateFns.format(lastOnline, "D/M/YY");
+
+    return (
+      <>
+        {isOnline && <Text style={styles.onlineStatusText}>Online</Text>}
+        {!isOnline && <Text style={styles.typingText}>{lastOnlineText}</Text>}
+      </>
+    );
+  };
+
+  _onTyping = debounce(({ username }) => {
+    this.setState(
+      {
+        isTyping: true,
+        typingUsername: username
+      },
+      () => {
+        setTimeout(
+          () =>
+            this.setState({
+              isTyping: false,
+              typingUsername: null
+            }),
+          850
+        );
+      }
+    );
+  }, 300);
+  _onOnline = data => {
+    this.setState({
+      isOnline: data.isOnline,
+      lastOnline: data.lastOnline
+    });
+    return ["Online presence", data];
+  };
   _onNewMessage = message => {
     this.setState(state => ({
       messages: {
@@ -150,9 +217,10 @@ export default class ChatScreen extends React.Component {
 
   _onMessageRead = ({ comment }) => {
     toast("message read");
-    const date = new Date(comment.timestamp);
+    // const date = new Date(comment.timestamp);
     const results = this.messages
-      .filter(it => new Date(it.timestamp) <= date)
+      // .filter(it => new Date(it.timestamp) <= date)
+      .filter(it => it.timestamp <= comment.timestamp)
       .map(it => ({ ...it, status: "read" }));
 
     const messages = results.reduce((result, item) => {
@@ -172,9 +240,8 @@ export default class ChatScreen extends React.Component {
   _onMessageDelivered = ({ comment }) => {
     toast("message delivered");
 
-    const date = new Date(comment.timestamp);
     const results = this.messages
-      .filter(it => new Date(it.timestamp) <= date && it.status !== "read")
+      .filter(it => it.timestamp <= comment.timestamp && it.status !== "read")
       .map(it => ({ ...it, status: "delivered" }));
 
     const messages = results.reduce((result, item) => {
@@ -347,17 +414,45 @@ export default class ChatScreen extends React.Component {
     this.props.navigation.navigate("RoomInfo", { roomId });
   };
 
+  get isGroup() {
+    if (this.state.room == null || this.state.room.room_type == null)
+      return false;
+    return this.state.room.room_type === "group";
+  }
+
+  get participants() {
+    const room = this.state.room;
+    if (room == null || room.participants == null) return;
+    const limit = 3;
+    const overflowCount = room.participants.length - limit;
+    const participants = room.participants
+      .slice(0, limit)
+      .map(it => it.username.split(" ")[0]);
+    if (room.participants.length <= limit) return participants.join(", ");
+    return participants.concat(`and ${overflowCount} others.`).join(", ");
+  }
+
   get messages() {
     return this._sortMessage(Object.values(this.state.messages));
   }
 }
 
-const styles = StyleSheet.create({
-  container: {
-    display: "flex",
-    alignItems: "center",
-    backgroundColor: "#fafafa",
-    height: "100%",
-    width: "100%"
+const styles = StyleSheet.create(css`
+  .container {
+    display: flex;
+    align-items: center;
+    background-color: #fafafa;
+    height: 100%;
+    width: 100%;
   }
-});
+  .onlineStatus {
+  }
+  .onlineStatusText {
+    font-size: 12px;
+    color: #94ca62;
+  }
+  .typingText {
+    font-size: 12px;
+    color: #979797;
+  }
+`);
