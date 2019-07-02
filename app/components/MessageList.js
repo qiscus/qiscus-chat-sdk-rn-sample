@@ -162,26 +162,32 @@ export default class MessageList extends React.Component {
       );
   };
 
-  _onEndReached = distance => {};
-
-  _onScroll = debounce(distance => {
-    console.log("scroll", distance);
-  }, 300);
+  _onEndReached = debounce(distance => {
+    // on end reached
+    if (distance <= 80) {
+      this._scroll();
+    }
+  }, 150);
 
   _scroll = () => {
-    if (this.$flatList != null) {
-      this.$flatList.scrollToOffset({
-        offset: this.props.messages.length * 100
-      });
-    }
+    setTimeout(() => {
+      if (this.$flatList != null) {
+        this.$flatList.scrollToOffset({
+          offset: (this.props.messages.length + 1) * 800
+        });
+      }
+    }, 1500);
   };
 
+  componentDidMount() {
+    this._scroll();
+  }
+
   componentDidUpdate(prevProps, prevState) {
-    const isMessagesChanged =
-      this.props.messages.length !== prevProps.messages.length;
+    const { messages } = this.props;
+    const isMessagesChanged = messages.length !== prevProps.messages.length;
     if (this.$flatList != null && this.props.scroll && isMessagesChanged) {
-      toast("scroll!");
-      setTimeout(() => this._scroll(), 1000);
+      this._scroll();
     }
   }
 
@@ -209,6 +215,7 @@ export default class MessageList extends React.Component {
 
     return (
       <FlatList
+        initialNumToRender={20}
         ref={ref => (this.$flatList = ref)}
         data={items}
         keyExtractor={it => `key-${it.id}`}
@@ -216,11 +223,10 @@ export default class MessageList extends React.Component {
         getItemLayout={(data, index) => {
           let length = 80;
           if (data.type === "custom" && data.payload.type === "image")
-            length = 200;
+            length = 300;
           return { length: length, offset: 0, index: index };
         }}
         onEndReached={distance => this._onEndReached(distance.distanceFromEnd)}
-        onScroll={event => this._onScroll(event.nativeEvent.contentOffset.y)}
         style={{
           width: "100%",
           height: "100%"
