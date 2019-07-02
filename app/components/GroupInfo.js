@@ -1,21 +1,147 @@
-import React from "react";
+import React, { useCallback, useEffect } from "react";
 import {
-  View,
-  TouchableWithoutFeedback,
-  TouchableOpacity,
-  TextInput,
-  Image,
   FlatList,
+  Image,
   StyleSheet,
-  Text
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View
 } from "react-native";
+import { state } from "reactive.macro";
 import css from "css-to-rn.macro";
+import ImagePicker from "react-native-image-picker";
 
 import * as Qiscus from "qiscus";
+import toast from "utils/toast";
 import Toolbar from "components/Toolbar";
 import ContactItem from "components/ContactItem";
 
-export default class GroupInfo extends React.Component {
+function _Toolbar(props) {
+  return (
+    <Toolbar
+      title="Group Info"
+      renderLeftButton={() => (
+        <TouchableOpacity style={styles.toolbarBtn} onPress={props.onBack}>
+          <Image style={styles.icon} source={require("assets/ic_back.png")} />
+        </TouchableOpacity>
+      )}
+      renderRightButton={() => (
+        <TouchableOpacity
+          style={styles.toolbarBtn}
+          onPress={props.onCreateGroup}
+        >
+          <Image style={styles.icon} source={require("assets/ic_check.png")} />
+        </TouchableOpacity>
+      )}
+    />
+  );
+}
+
+export default function _GroupInfo(props) {
+  const name = state(null);
+  const avatarUrl = state("https://via.placeholder.com/200x200");
+  const createGroup = useCallback(() => {
+    const userIds = props.contacts.map(it => it.email);
+    Qiscus.qiscus
+      .createGroupRoom(name, userIds, { avatarURL: avatarUrl })
+      .then(room => {
+        props.navigation.replace("Chat", {
+          roomId: room.id
+        });
+      })
+      .catch(error => {
+        console.log("error", error);
+      });
+  }, [name, props.contacts]);
+  const onSelectImage = useCallback(() => {
+    ImagePicker.showImagePicker(
+      {
+        title: "Select image",
+        storageOptions: {
+          skipBackup: true,
+          path: "images"
+        }
+      },
+      resp => {
+        if (resp.didCancel || resp.error)
+          return console.log("canceled", resp.error);
+
+        toast("Uploading image...");
+        const opts = { uri: resp.uri, name: resp.fileName, type: resp.type };
+        Qiscus.qiscus.upload(opts, (error, progress, fileUrl) => {
+          if (error != null) return console.log("error while upload", error);
+          if (fileUrl != null) {
+            avatarUrl = fileUrl;
+          }
+        });
+      }
+    );
+  });
+  const onBack = useCallback(() => {
+    props.navigation.goBack();
+  });
+
+  useEffect(() => console.log(avatarUrl), [avatarUrl]);
+
+  return (
+    <View style={styles.container}>
+      <_Toolbar onCreateGroup={createGroup} onBack={onBack} />
+      <View style={styles.groupInfoContainer}>
+        <View style={styles.avatarContainer}>
+          <Image style={styles.avatarPreview} source={{ uri: avatarUrl }} />
+          <TouchableWithoutFeedback
+            style={styles.avatarPickerBtn}
+            onPress={onSelectImage}
+          >
+            <Image
+              style={[styles.icon, styles.iconAvatarPicker]}
+              source={require("assets/ic_image_attachment.png")}
+            />
+          </TouchableWithoutFeedback>
+        </View>
+        <View style={styles.groupNameContainer}>
+          <Text style={styles.groupNameLabel}>Group Name</Text>
+          <TextInput
+            style={styles.groupNameInput}
+            placeholder="Group name"
+            onChangeText={text => (name = text)}
+          />
+        </View>
+      </View>
+      <View style={styles.participantListContainer}>
+        <View style={styles.participantsHeader}>
+          <Text style={styles.participantsHeaderText}>Participants</Text>
+        </View>
+        <FlatList
+          style={styles.participantList}
+          initialNumToRender={10}
+          keyExtractor={item => `${item.id}`}
+          data={props.contacts}
+          renderItem={data => (
+            <ContactItem
+              contact={data.item}
+              renderButton={() => (
+                <TouchableWithoutFeedback
+                  style={styles.removeBtn}
+                  onPress={() => props.onRemove(data.item)}
+                >
+                  <Image
+                    style={[styles.icon, styles.selected]}
+                    source={require("assets/delete.png")}
+                  />
+                </TouchableWithoutFeedback>
+              )}
+            />
+          )}
+        />
+      </View>
+    </View>
+  );
+}
+
+export class GroupInfo extends React.Component {
   state = {
     avatarURL: null,
     name: null
@@ -60,7 +186,10 @@ export default class GroupInfo extends React.Component {
               style={styles.avatarPreview}
               source={{ uri: "https://via.placeholder.com/200x200" }}
             />
-            <TouchableWithoutFeedback style={styles.avatarPickerBtn}>
+            <TouchableWithoutFeedback
+              style={styles.avatarPickerBtn}
+              onPress={this._onSelectImage}
+            >
               <Image
                 style={[styles.icon, styles.iconAvatarPicker]}
                 source={require("assets/ic_image_attachment.png")}
@@ -106,6 +235,8 @@ export default class GroupInfo extends React.Component {
       </View>
     );
   }
+
+  _onSelectImage = () => {};
 
   _onRemoveContact = contact => {
     this.props.onRemove(contact);

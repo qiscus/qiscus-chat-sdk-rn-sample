@@ -176,7 +176,7 @@ export default class ChatScreen extends React.Component {
     return (
       <>
         {isOnline && <Text style={styles.onlineStatusText}>Online</Text>}
-        {!isOnline && <Text style={style.typingText}>{lastOnlineText}</Text>}
+        {!isOnline && <Text style={styles.typingText}>{lastOnlineText}</Text>}
       </>
     );
   };
