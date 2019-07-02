@@ -68,7 +68,6 @@ export default class ChatScreen extends React.Component {
         Qiscus.onlinePresence$().map(this._onOnline),
         Qiscus.typing$()
           .filter(it => Number(it.room_id) === this.state.room.id)
-          .debug("typing$")
           .map(this._onTyping)
       )
       .subscribe({
@@ -218,9 +217,10 @@ export default class ChatScreen extends React.Component {
 
   _onMessageRead = ({ comment }) => {
     toast("message read");
-    const date = new Date(comment.timestamp);
+    // const date = new Date(comment.timestamp);
     const results = this.messages
-      .filter(it => new Date(it.timestamp) <= date)
+      // .filter(it => new Date(it.timestamp) <= date)
+      .filter(it => it.timestamp <= comment.timestamp)
       .map(it => ({ ...it, status: "read" }));
 
     const messages = results.reduce((result, item) => {
@@ -240,9 +240,8 @@ export default class ChatScreen extends React.Component {
   _onMessageDelivered = ({ comment }) => {
     toast("message delivered");
 
-    const date = new Date(comment.timestamp);
     const results = this.messages
-      .filter(it => new Date(it.timestamp) <= date && it.status !== "read")
+      .filter(it => it.timestamp <= comment.timestamp && it.status !== "read")
       .map(it => ({ ...it, status: "delivered" }));
 
     const messages = results.reduce((result, item) => {

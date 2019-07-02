@@ -3,18 +3,15 @@ import firebase from "react-native-firebase";
 import { Platform } from "react-native";
 
 import * as Qiscus from "qiscus";
-import p from "utils/p";
 
 const getToken = () => firebase.messaging().getToken();
 export const getToken$ = () => xs.from(getToken());
 
 export const initiate$ = () =>
   Qiscus.isLogin$()
-    .debug("isLogin fb")
     .map(() => getToken$())
     .flatten()
     .take(1)
-    .debug()
     .map(token => xs.from(Qiscus.setDeviceToken(token)))
     .flatten();
 
