@@ -102,6 +102,8 @@ export const typing$ = () =>
   event$.filter(it => it.kind === "typing").map(it => it.data);
 
 export function setDeviceToken(token) {
+  console.log("qiscus.isLogin", qiscus.isLogin);
+  console.log("qiscus.userData", qiscus.userData);
   const userToken = qiscus.userData.token;
   return axios
     .post(

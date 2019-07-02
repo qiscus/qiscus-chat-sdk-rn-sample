@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, StatusBar } from "react-native";
+import { StyleSheet, StatusBar, Platform, View } from "react-native";
 import { createStackNavigator, createAppContainer } from "react-navigation";
 import AsyncStorage from "@react-native-community/async-storage";
 
@@ -66,6 +66,7 @@ export default class App extends React.Component {
   render() {
     return (
       <>
+        {Platform.OS === 'ios' && <View style={{height: 20}} />}
         <AppContainer
           style={styles.container}
           ref={ref => (this.navigation = ref && ref._navigation)}
