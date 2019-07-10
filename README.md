@@ -16,11 +16,19 @@ You can see some of sample UI in this repository
 ## How to run
 
 ```bash
-# Install dependency
+
+Install react-native-cli from npm globally
+$ npm install react-native-cli -g
+
+# Choose folder and install the dependency
+$ cd qiscus-chat-sdk-rn-example
 $ npm install
 
-# Run on android device or emulator
-$ npm run android
+# Run project with desired platform if you prefer use Android run code below
+$ react-native run-android
+
+# Run project with desired platform if you prefer use IOS run code below
+$ react-native run-ios
 ```
 
 ## Contribution
