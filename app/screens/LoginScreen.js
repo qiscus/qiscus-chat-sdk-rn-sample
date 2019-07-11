@@ -6,6 +6,8 @@ import {
   ImageBackground,
   Image,
   TextInput,
+  ScrollView,
+  KeyboardAvoidingView,
   TouchableOpacity
 } from "react-native";
 import AsyncStorage from "@react-native-community/async-storage";
@@ -51,43 +53,47 @@ export default class LoginScreen extends React.Component {
 
   render() {
     return (
-      <View style={{ height: "100%", width: "100%" }}>
-        <ImageBackground
-          source={require("assets/bg-pattern.png")}
-          style={styles.background}
-        >
-          <View style={styles.container}>
-            <Image source={require("assets/logo.png")} style={styles.logo} />
-            <View style={styles.form}>
-              <View style={styles.formGroup}>
-                <Text style={styles.label}>User ID</Text>
-                <TextInput
-                  style={styles.input}
-                  onChangeText={text => this.setState({ userId: text })}
-                  value={this.state.userId}
-                />
-              </View>
-              <View style={styles.formGroup}>
-                <Text style={styles.label}>User Key</Text>
-                <TextInput
-                  style={styles.input}
-                  onChangeText={text => this.setState({ userKey: text })}
-                  value={this.state.userKey}
-                  secureTextEntry={true}
-                />
-              </View>
-              <View style={styles.formGroup}>
-                <TouchableOpacity
-                  style={styles.submitButton}
-                  onPress={() => this.onSubmit()}
-                >
-                  <Text style={styles.submitText}>Start</Text>
-                </TouchableOpacity>
+      <ScrollView keyboardShouldPersistTaps="handled">
+        <View style={{ height: "100%", width: "100%" }}>
+          <KeyboardAvoidingView enabled>
+          <ImageBackground
+            source={require("assets/bg-pattern.png")}
+            style={styles.background}
+          >
+            <View style={styles.container}>
+              <Image source={require("assets/logo.png")} style={styles.logo} />
+              <View style={styles.form}>
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>User ID</Text>
+                  <TextInput
+                    style={styles.input}
+                    onChangeText={text => this.setState({ userId: text })}
+                    value={this.state.userId}
+                  />
+                </View>
+                <View style={styles.formGroup}>
+                  <Text style={styles.label}>User Key</Text>
+                  <TextInput
+                    style={styles.input}
+                    onChangeText={text => this.setState({ userKey: text })}
+                    value={this.state.userKey}
+                    secureTextEntry={true}
+                  />
+                </View>
+                <View style={styles.formGroup}>
+                  <TouchableOpacity
+                    style={styles.submitButton}
+                    onPress={() => this.onSubmit()}
+                  >
+                    <Text style={styles.submitText}>Start</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
-          </View>
-        </ImageBackground>
-      </View>
+          </ImageBackground>
+          </KeyboardAvoidingView>
+        </View>
+      </ScrollView>
     );
   }
 }
