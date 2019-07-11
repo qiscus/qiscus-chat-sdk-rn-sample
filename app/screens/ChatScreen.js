@@ -98,7 +98,9 @@ export default class ChatScreen extends React.Component {
         enabled
       >
         <Toolbar
-          title={roomName}
+          title={<Text style={styles.titleText}>
+                  {roomName}
+                </Text>} 
           onPress={this._onToolbarClick}
           renderLeftButton={() => (
             <TouchableOpacity
@@ -170,7 +172,7 @@ export default class ChatScreen extends React.Component {
 
     const lastOnlineText = dateFns.isSameDay(lastOnline, new Date())
       ? dateFns.format(lastOnline, "hh:mm")
-      : dateFns.format(lastOnline, "D/M/YY");
+      : "";
 
     return (
       <>
@@ -454,5 +456,8 @@ const styles = StyleSheet.create(css`
   .typingText {
     font-size: 12px;
     color: #979797;
+  }
+  .titleText {
+    font-size: 16px;
   }
 `);
