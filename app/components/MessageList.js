@@ -93,6 +93,7 @@ export default class MessageList extends React.Component {
     if (isDate) textStyle.push(styles.messageTextDate);
 
     const showMeta = isMe && !isDate && !isLoadMore;
+    const showMetaOther = !isMe && !isDate && !isLoadMore;
 
     let content = <Text style={textStyle}>{message.message}</Text>;
 
@@ -114,6 +115,7 @@ export default class MessageList extends React.Component {
           )}
           {!isLoadMore && <View style={textStyle}>{content}</View>}
         </View>
+        {showMetaOther && this._renderMessageMetaOther(message)}
       </View>
     );
   };
@@ -126,6 +128,15 @@ export default class MessageList extends React.Component {
           {dateFns.format(message.timestamp, "HH:mm")}
         </Text>
         {this._renderMessageStatus(message.status)}
+      </View>
+    );
+  };
+  _renderMessageMetaOther = message => {
+    return (
+      <View style={styles.metaContainer}>
+        <Text style={styles.metaTime}>
+          {dateFns.format(message.timestamp, "HH:mm")}
+        </Text>
       </View>
     );
   };
