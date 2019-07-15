@@ -53,8 +53,9 @@ export const init = () => {
         event.emit("event", { kind: "login-success", data: authData });
       },
       newMessagesCallback(messages) {
-        const message = messages.shift();
-        event.emit("event", { kind: "new-message", data: message });
+        messages.forEach((message) => {
+          event.emit("event", { kind: "new-message", data: message });
+        })
       },
       presenceCallback(data) {
         data = data.split(":");
