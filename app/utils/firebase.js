@@ -38,11 +38,12 @@ export const onNotification$ = () =>
         listener: null,
         start(listener) {
             this.listener = firebase.notifications().onNotification(notification => {
-                AsyncStorage.getItem('currentRoomId',(error,result)=>{
-                        if (notification.data.qiscus_room_id != result ){
+                AsyncStorage.getItem('currentRoomId').then(result => {
+                        if (notification.data.qiscus_room_id != result) {
                             listener.next(notification);
                         }
-                });
+                    }
+                );
             });
         },
         stop() {
