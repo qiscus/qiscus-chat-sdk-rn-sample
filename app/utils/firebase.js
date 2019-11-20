@@ -5,6 +5,7 @@ import {Platform, AsyncStorage} from "react-native";
 import * as Qiscus from "qiscus";
 
 const getToken = () => firebase.messaging().getToken();
+
 export const getToken$ = () => xs.from(getToken());
 
 export const initiate$ = () =>

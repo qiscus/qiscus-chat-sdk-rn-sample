@@ -2,7 +2,7 @@ import xs from "xstream";
 import mitt from "mitt";
 import axios from "axios";
 import QiscusSDK from "qiscus-sdk-core";
-
+import firebase from 'react-native-firebase'
 /// xstream composable utils
 const distinct = stream => {
   let subscription = null;
@@ -129,3 +129,30 @@ export function setDeviceToken(token) {
       console.log("failed sending device token", error);
     });
 }
+
+export function removeDeviceToken(fcm_token) {
+  const userToken = qiscus.userData.token;
+  return axios
+      .post(
+          `https://api.qiscus.com/api/v2/mobile/remove_user_device_token`,
+          {
+            token: userToken,
+            device_token: fcm_token,
+            device_platform: "rn"
+          },
+          {
+            headers: {
+              qiscus_sdk_app_id: qiscus.AppId,
+              qiscus_sdk_token: userToken,
+              qiscus_sdk_user_id: qiscus.user_id
+            }
+          }
+      )
+      .then(res => {
+        console.log("success sending device token", res);
+      })
+      .catch(error => {
+        console.log("failed sending device token", error);
+      });
+}
+

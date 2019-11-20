@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-community/async-storage";
 import * as Qiscus from "qiscus";
+import firebase from "react-native-firebase";
 
 export default class LoginScreen extends React.Component {
   state = {
@@ -39,10 +40,12 @@ export default class LoginScreen extends React.Component {
     this.subscription.unsubscribe();
   }
 
-  onSubmit = () => {
+  onSubmit = async () => {
+    const token = await firebase.messaging().getToken();
+    Qiscus.setDeviceToken(token)
     Qiscus.qiscus
-      .setUser(this.state.userId, this.state.userKey)
-      .catch(() => console.log("Failed login"));
+        .setUser(this.state.userId, this.state.userKey)
+        .catch(() => console.log("Failed login"));
   };
 
   componentDidUpdate(prevProps, prevState) {
