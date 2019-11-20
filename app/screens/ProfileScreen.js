@@ -98,7 +98,7 @@ export default class ProfileScreen extends React.Component {
         const oldToken = await firebase.messaging().getToken();
         if (oldToken) {
             //menjalankan fungsi hapus token yang kita buat sebelumnya
-            Qiscus.removeDeviceToken(oldToken)
+            Qiscus.qiscus.removeDeviceToken(oldToken)
             //hapus token fcm firebase
             await firebase.messaging().deleteToken();
             //meminta token baru ke firebase

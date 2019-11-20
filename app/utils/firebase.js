@@ -13,7 +13,7 @@ export const initiate$ = () =>
         .map(() => getToken$())
         .flatten()
         .take(1)
-        .map(token => xs.from(Qiscus.setDeviceToken(token)))
+        .map(token => xs.from(Qiscus.qiscus.registerDeviceToken(token)))
         .flatten();
 
 async function requestPermission() {
