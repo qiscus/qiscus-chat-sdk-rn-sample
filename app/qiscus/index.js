@@ -106,6 +106,7 @@ export const typing$ = () =>
 export function setDeviceToken(token) {
   console.log('qiscus.isLogin', qiscus.isLogin);
   console.log('qiscus.userData', qiscus.userData);
+  console.log('data qiscus token', token);
 
-  return qiscus.setDeviceToken(token);
+  return qiscus.registerDeviceToken(token);
 }
