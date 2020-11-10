@@ -1,25 +1,22 @@
-import React from 'react'
-import {
-  View,
-  StyleSheet,
-  Text,
-  Image,
-  TouchableOpacity,
-} from 'react-native'
-import dateFns from 'date-fns'
+import React from 'react';
+import {View, StyleSheet, Text, Image, TouchableOpacity} from 'react-native';
+import isSameDay from 'date-fns/isSameDay';
+import format from 'date-fns/format';
 
-import * as Qiscus from 'qiscus'
+import * as Qiscus from 'qiscus';
+import {parseISO} from 'date-fns';
 
 export default class RoomItem extends React.PureComponent {
   getTime = (time) => {
-    if (dateFns.isSameDay(time, new Date())) {
-      return dateFns.format(time, 'HH:mm')
+    time = parseISO(time);
+    if (isSameDay(time, new Date())) {
+      return format(time, 'HH:mm');
     }
-    return dateFns.format(time, 'DD/MM/YYYY')
+    return format(time, 'dd/MM/yyyy');
   };
 
   _onClick = (roomId) => {
-    this.props.onClick && this.props.onClick(roomId)
+    this.props.onClick && this.props.onClick(roomId);
   };
 
   render() {
@@ -29,9 +26,10 @@ export default class RoomItem extends React.PureComponent {
       : room.last_comment_message;
     const unreadCount = Number(room.count_notif);
     return (
-      <TouchableOpacity style={styles.container}
-      onPress={() => this._onClick(room.id)}>
-        <Image style={styles.avatar} source={{ uri: room.avatar }} />
+      <TouchableOpacity
+        style={styles.container}
+        onPress={() => this._onClick(room.id)}>
+        <Image style={styles.avatar} source={{uri: room.avatar}} />
         <View style={styles.dataContainer}>
           <View style={styles.content}>
             <Text style={styles.name}>{room.name}</Text>
@@ -41,11 +39,13 @@ export default class RoomItem extends React.PureComponent {
             <Text style={styles.time}>
               {this.getTime(room.last_comment_message_created_at)}
             </Text>
-            {unreadCount > 0 && <Text style={styles.unreadCount}>{unreadCount}</Text>}
+            {unreadCount > 0 && (
+              <Text style={styles.unreadCount}>{unreadCount}</Text>
+            )}
           </View>
         </View>
       </TouchableOpacity>
-    )
+    );
   }
 }
 
@@ -72,14 +72,14 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: '#e8e8e8',
     marginLeft: 10,
-    paddingBottom: 16
+    paddingBottom: 16,
   },
   content: {
     flex: 1,
   },
   name: {
     fontSize: 14,
-    color: '#2c2c36'
+    color: '#2c2c36',
   },
   lastMessage: {
     fontSize: 11,
@@ -106,5 +106,5 @@ const styles = StyleSheet.create({
     minWidth: 14,
     textAlign: 'center',
     marginTop: 5,
-  }
+  },
 });
