@@ -1,4 +1,5 @@
-import React from "react";
+//@ts-check
+import React from 'react';
 import {
   View,
   Image,
@@ -6,48 +7,49 @@ import {
   StyleSheet,
   TextInput,
   Text,
-  FlatList
-} from "react-native";
-import css from "css-to-rn.macro";
-import xs from "xstream";
-import toast from "utils/toast";
+  FlatList,
+} from 'react-native';
+// @ts-ignore
+import css from 'css-to-rn.macro';
+// @ts-ignore
+import xs from 'xstream';
 
-import * as Qiscus from "qiscus";
-import Toolbar from "components/Toolbar";
-import ContactItem from "components/ContactItem";
-import ContactChooser from "components/ContactChooser";
+import * as Qiscus from '../qiscus';
+import toast from '../utils/toast';
+import Toolbar from '../components/Toolbar';
+import ContactItem from '../components/ContactItem';
+import ContactChooser from '../components/ContactChooser';
 
 export default class RoomInfo extends React.Component {
   state = {
-    page: "info",
-    room: {},
+    page: 'info',
+    /** @type import("qiscus-sdk-javascript/typings/model").IQChatRoom? */
+    room: null,
     name: null,
-    isEditingName: false
+    isEditingName: false,
   };
 
-  componentDidMount() {
+  async componentDidMount() {
     // const roomId = this.props.navigation.getParam("roomId", null);
-    const roomId = this.props.navigation.getParam("roomId", "2841019");
+    /** @type string */
+    const roomId = this.props.navigation.getParam('roomId', '2841019');
     if (roomId == null) return;
-    Qiscus.isLogin$()
-      .take(1)
-      .map(() => xs.from(this._loadRoomInfo(roomId)))
-      .flatten()
-      .subscribe({
-        next: room => {
-          this.setState({ room: room, name: room.room_name });
-        }
-      });
+
+    const room = await this._loadRoomInfo(Number(roomId));
+    this.setState({
+      room,
+      name: room.name,
+    });
   }
 
   render() {
-    if (this.state.page === "info") return this._render();
+    if (this.state.page === 'info') return this._render();
     else {
       return (
         <ContactChooser
           onBack={() =>
             this.setState({
-              page: "info"
+              page: 'info',
             })
           }
           onSubmit={this._onSubmit}
@@ -56,8 +58,8 @@ export default class RoomInfo extends React.Component {
     }
   }
   _render() {
-    const { room, isEditingName } = this.state;
-    const isSingle = room.chat_type === "single";
+    const {room, isEditingName} = this.state;
+    const isSingle = room?.type === 'single';
 
     return (
       <View style={styles.container}>
@@ -65,13 +67,16 @@ export default class RoomInfo extends React.Component {
           title="Room Info"
           renderLeftButton={() => (
             <TouchableOpacity onPress={this._onBack}>
-              <Image source={require("assets/ic_back.png")} />
+              <Image
+                source={require(// @ts-ignore
+                'assets/ic_back.png')}
+              />
             </TouchableOpacity>
           )}
         />
 
         <View style={styles.avatarContainer}>
-          <Image style={styles.avatar} source={{ uri: room.avatar_url }} />
+          <Image style={styles.avatar} source={{uri: room?.avatarUrl}} />
           {!isSingle && (
             <RoomMeta
               name={this.state.name}
@@ -104,86 +109,87 @@ export default class RoomInfo extends React.Component {
     return this.participants.slice().pop();
   }
   get participants() {
-    if (this.state.room.participants == null) return [];
-    return this.state.room.participants.filter(
-      it => it.email !== Qiscus.currentUser().email
+    if (this.state.room?.participants == null) return [];
+    return (
+      this.state.room?.participants?.filter(
+        (it) => it.id !== Qiscus.currentUser().id,
+      ) ?? []
     );
   }
 
-  _onRemove = contact => {
-    console.log("on:remove", contact);
-    Qiscus.qiscus
-      .removeParticipantsFromGroup(this.state.room.id, [contact.email])
+  /**
+   * @param {IQUser} contact
+   */
+  _onRemove = (contact) => {
+    console.log('on:remove', contact);
+    Qiscus.q
+      .removeParticipants(this.state.room.id, [contact.id])
       .then(() => {
-        this.setState(state => ({
+        this.setState((state) => ({
           room: {
             ...state.room,
             participants: state.room.participants.filter(
-              it => it.id !== contact.id
-            )
-          }
+              (it) => it.id !== contact.id,
+            ),
+          },
         }));
-        toast("Success removing participant");
+        toast('Success removing participant');
       })
-      .catch(error => {
-        console.log("failed removing participant", error);
+      .catch((error) => {
+        console.log('failed removing participant', error);
       });
   };
   _onAddUser = () => {
-    console.log("on_add");
-    this.setState({ page: "choose" });
+    console.log('on_add');
+    this.setState({page: 'choose'});
   };
-  _onSubmit = contacts => {
-    const userIds = contacts.map(it => it.email);
-    Qiscus.qiscus
-      .addParticipantsToGroup(this.state.room.id, userIds)
-      .then(users => {
-        this.setState(state => ({
-          page: "info",
+
+  /**
+   * @param {IQUser[]} contacts
+   */
+  _onSubmit = (contacts) => {
+    const userIds = contacts.map((it) => it.id);
+
+    Qiscus.q
+      .addParticipants(this.state.room.id, userIds)
+      .then((users) => {
+        this.setState((state) => ({
+          page: 'info',
           room: {
             ...state.room,
-            participants: [...state.room.participants, ...users]
-          }
+            participants: [...state.room.participants, ...users],
+          },
         }));
       })
-      .catch(error => {
-        console.log("failed adding participants", error);
+      .catch((error) => {
+        console.log('failed adding participants', error);
       });
   };
-  _onChangeName = name => this.setState({ name });
+  _onChangeName = (name) => this.setState({name});
   _onSubmitName = () => {
     if (this.state.name == null) return;
     if (this.state.name.length === 0) return;
-    console.log("on:submit name", this.state.name);
-    Qiscus.qiscus
-      .updateRoom({
-        id: this.state.room.id,
-        room_name: this.state.name
-      })
-      .then(() => {
-        this.setState({ isEditingName: false });
-      });
+    Qiscus.q.updateChatRoom(this.state.room.id, this.state.name).then(() => {
+      this.setState({isEditingName: false});
+    });
   };
   _onEditName = () => {
-    this.setState(state => ({
-      isEditingName: !state.isEditingName
+    this.setState((state) => ({
+      isEditingName: !state.isEditingName,
     }));
   };
   _onEditAvatar = () => {
-    console.log("on:change-avatar");
+    console.log('on:change-avatar');
   };
   _onBack = () => {
     this.props.navigation.goBack();
   };
-  _loadRoomInfo = roomId => {
-    return Qiscus.qiscus
-      .getRoomsInfo({ room_ids: [`${roomId}`] })
-      .then(resp => {
-        return resp.results.rooms_info.pop();
-      })
-      .catch(error => {
-        console.log("error when getting room info", error);
-      });
+
+  /** @param {number} roomId */
+  _loadRoomInfo = (roomId) => {
+    return Qiscus.q
+      .getChatRooms([roomId], 1, false, true)
+      .then((rooms) => rooms.pop());
   };
 }
 
@@ -201,21 +207,29 @@ function RoomMeta(props) {
         value={props.name}
       />
       <TouchableOpacity style={styles.changeNameBtn} onPress={props.onEditName}>
-        <Image style={styles.icon} source={require("assets/ic_edit.png")} />
+        <Image
+          style={styles.icon}
+          source={require(// @ts-ignore
+          'assets/ic_edit.png')}
+        />
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.changeNameBtn}
-        onPress={props.onEditAvatar}
-      >
+        onPress={props.onEditAvatar}>
         <Image
           style={styles.icon}
-          source={require("assets/ic_image_attachment.png")}
+          // @ts-ignore
+          source={require('assets/ic_image_attachment.png')}
         />
       </TouchableOpacity>
     </View>
   );
 }
 
+/**
+ * @param {object} props
+ * @param {import('qiscus-sdk-javascript/typings/model').IQUser?} props.user
+ */
 function SingleInfo(props) {
   return (
     <>
@@ -226,21 +240,35 @@ function SingleInfo(props) {
         <View style={styles.fieldIcon}>
           <Image
             style={[styles.icon]}
-            source={require("assets/ic_contact.png")}
+            // @ts-ignore
+            source={require('assets/ic_contact.png')}
           />
         </View>
-        <Text style={styles.fieldText}>{props.user.username}</Text>
+        <Text style={styles.fieldText}>{props.user?.name}</Text>
       </View>
       <View style={styles.fieldGroup}>
         <View style={styles.fieldIcon}>
-          <Image style={[styles.icon]} source={require("assets/ic_id.png")} />
+          <Image
+            style={[styles.icon]}
+            source={require(// @ts-ignore
+            'assets/ic_id.png')}
+          />
         </View>
-        <Text style={styles.fieldText}>{props.user.email}</Text>
+        <Text style={styles.fieldText}>{props.user?.id}</Text>
       </View>
     </>
   );
 }
 
+/**
+ * @typedef {import('qiscus-sdk-javascript/typings/model').IQUser} IQUser
+ * @typedef {import('qiscus-sdk-javascript/typings/model').IQChatRoom} IQChatRoom
+ * @param {object} props
+ * @param {() => void} props.onAddUser
+ * @param {(user: IQUser) => void} props.onRemove
+ * @param {IQUser[]} props.contacts
+ * @param {IQChatRoom} props.room
+ */
 function GroupInfo(props) {
   return (
     <>
@@ -249,27 +277,31 @@ function GroupInfo(props) {
       </View>
       <View style={styles.addUserContainer}>
         <TouchableOpacity style={styles.addUserBtn} onPress={props.onAddUser}>
-          <Image style={styles.icon} source={require("assets/ic_id.png")} />
+          <Image
+            style={styles.icon}
+            source={require(// @ts-ignore
+            'assets/ic_id.png')}
+          />
           <Text style={styles.addUserText}>Add Participants</Text>
         </TouchableOpacity>
       </View>
       <FlatList
         style={styles.contactList}
         initialNumToRender={10}
-        keyExtractor={item => `${item.id}`}
+        keyExtractor={(item) => `${item.id}`}
         data={props.contacts}
         disableVirtualization={false}
-        renderItem={data => (
+        renderItem={(data) => (
           <ContactItem
             contact={data.item}
             renderButton={() => (
               <TouchableOpacity
                 style={styles.removeParticipantBtn}
-                onPress={() => props.onRemove(data.item)}
-              >
+                onPress={() => props.onRemove(data.item)}>
                 <Image
                   style={styles.icon}
-                  source={require("assets/delete.png")}
+                  // @ts-ignore
+                  source={require('assets/delete.png')}
                 />
               </TouchableOpacity>
             )}

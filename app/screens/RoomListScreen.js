@@ -1,3 +1,5 @@
+// @ts-check
+
 import React from 'react';
 import {
   View,
@@ -9,39 +11,29 @@ import {
 import xs from 'xstream';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import * as Qiscus from 'qiscus';
-import * as Firebase from 'utils/firebase';
-import p from 'utils/p';
+import * as Qiscus from '../qiscus';
+import * as Firebase from '../utils/firebase';
+import p from '../utils/p';
 
-import RoomItem from 'components/RoomItem';
-import Toolbar from 'components/Toolbar';
+import RoomItem from '../components/RoomItem';
+import Toolbar from '../components/Toolbar';
 
 export default class RoomListScreen extends React.Component {
   state = {
+    /** @type import('qiscus-sdk-javascript/typings/model').IQChatRoom[] */
     rooms: [],
+    /** @type string */
     avatarURI: null,
   };
 
-  componentDidMount() {
+  async componentDidMount() {
     this.setState({
-      avatarURI: Qiscus.currentUser().avatar_url,
+      avatarURI: Qiscus.currentUser().avatarUrl,
     });
-    const subscription = Qiscus.isLogin$()
-      .filter((isLogin) => isLogin === true)
-      .take(1)
-      .map(() => xs.from(Qiscus.qiscus.loadRoomList()))
-      .flatten()
-      .subscribe({
-        next: (rooms) => {
-          this.setState({rooms});
-          subscription.unsubscribe();
-        },
-      });
-    this.subscription = Qiscus.newMessage$().subscribe({
-      next: (message) => {
-        this._onNewMessage$(message);
-      },
-    });
+    const rooms = await Qiscus.q.getAllChatRooms(true);
+    this.setState({rooms});
+
+    this.subscription = Qiscus.q.onMessageReceived(this._onNewMessage);
 
     this.subscription2 = Firebase.onNotificationOpened$().subscribe({
       next: (data) => {
@@ -72,22 +64,22 @@ export default class RoomListScreen extends React.Component {
   }
 
   componentWillUnmount() {
-    if (this.subscription) this.subscription.unsubscribe();
+    this.subscription?.();
     if (this.subscription2) this.subscription2.unsubscribe();
   }
 
-  _onNewMessage$ = (message) => {
-    const roomId = message.room_id;
+  /** @param {import('qiscus-sdk-javascript/typings/model').IQMessage} message */
+  _onNewMessage = (message) => {
+    const roomId = message.chatRoomId;
     const room = this.state.rooms.find((r) => r.id === roomId);
     if (room == null) return;
-    room.count_notif = (Number(room.count_notif) || 0) + 1;
-    room.last_comment_message = message.message;
+    room.unreadCount = (Number(room.unreadCount) || 0) + 1;
+    room.lastMessage = message;
 
     const rooms = this.state.rooms.filter((r) => r.id !== roomId);
     this.setState({
       rooms: [room, ...rooms],
     });
-    return `Success updating room ${room.id}`;
   };
 
   _openProfile = () => {
@@ -125,7 +117,8 @@ export default class RoomListScreen extends React.Component {
               onPress={this._openUserList}>
               <Image
                 style={styles.iconStartChat}
-                source={require('assets/ic_new_chat.png')}
+                // @ts-ignore
+                source={require('../../assets/ic_new_chat.png')}
               />
             </TouchableOpacity>
           )}

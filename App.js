@@ -8,7 +8,7 @@ import AsyncStorage, {
 
 import * as Qiscus from 'qiscus';
 import * as Firebase from 'utils/firebase';
-import {LoginPage as LoginScreen} from 'screens/LoginScreen';
+import {LoginPage} from 'screens/LoginScreen';
 import ProfileScreen from 'screens/ProfileScreen';
 import RoomListScreen from 'screens/RoomListScreen';
 import ChatScreen from 'screens/ChatScreen';
@@ -19,7 +19,7 @@ import flattenConcurrently from 'xstream/extra/flattenConcurrently';
 
 const AppNavigator = createStackNavigator(
   {
-    Login: LoginScreen,
+    Login: LoginPage,
     Profile: ProfileScreen,
     RoomList: RoomListScreen,
     Chat: ChatScreen,
@@ -35,17 +35,6 @@ export default function Application(props) {
   const storage = useAsyncStorage('qiscus');
   useEffect(() => {
     Qiscus.init();
-    storage.getItem().then(
-      (res) => {
-        if (res == null) return;
-
-        const data = JSON.parse(res);
-        Qiscus.qiscus.setUserWithIdentityToken({user: data});
-      },
-      (error) => {
-        console.log('error getting login data', error);
-      },
-    );
 
     const subscription = Firebase.initiate$()
       .map(() => Firebase.createChannel())

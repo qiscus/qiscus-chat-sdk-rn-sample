@@ -1,3 +1,4 @@
+//@ts-check
 import React from 'react';
 import {
   View,
@@ -10,25 +11,30 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ImagePicker from 'react-native-image-picker';
-import * as Qiscus from 'qiscus';
-import toast from 'utils/toast';
+import * as Qiscus from '../qiscus';
+import toast from '../utils/toast';
 
-import Toolbar from 'components/Toolbar';
+import Toolbar from '../components/Toolbar';
 
 export default class ProfileScreen extends React.Component {
+  /** @type TextInput */
+  $inputName = null;
   state = {
     isEditing: false,
+    /** @type string */
     name: null,
+    /** @type string */
     userId: null,
+    /** @type string */
     avatarURI: null,
   };
 
   componentDidMount() {
     const currentUser = Qiscus.currentUser();
     this.setState({
-      avatarURI: currentUser.avatar_url,
-      name: currentUser.username,
-      userId: currentUser.email,
+      avatarURI: currentUser.avatarUrl,
+      name: currentUser.name,
+      userId: currentUser.id,
     });
   }
 
@@ -47,7 +53,7 @@ export default class ProfileScreen extends React.Component {
         isEditing: true,
       },
       () => {
-        this.refs.inputName.focus();
+        this.$inputName.focus();
       },
     );
   };
@@ -113,7 +119,7 @@ export default class ProfileScreen extends React.Component {
               onPress={() => this.props.navigation.goBack()}>
               <Image
                 style={styles.icon}
-                source={require('assets/ic_back.png')}
+                source={require('../../assets/ic_back.png')}
               />
             </TouchableOpacity>
           )}
@@ -129,7 +135,7 @@ export default class ProfileScreen extends React.Component {
                 onPress={this._onEditAvatar}
                 style={styles.changeAvatarBtn}>
                 <Image
-                  source={require('assets/ic_image_attachment.png')}
+                  source={require('../../assets/ic_image_attachment.png')}
                   style={{height: 35, width: 35}}
                 />
               </TouchableOpacity>
@@ -145,14 +151,14 @@ export default class ProfileScreen extends React.Component {
             <View style={styles.iconContainer}>
               <Image
                 style={styles.icon}
-                source={require('assets/ic_contact.png')}
+                source={require('../../assets/ic_contact.png')}
               />
             </View>
             <TextInput
               editable={this.state.isEditing}
               style={styles.textInput}
               value={this.state.name}
-              ref="inputName"
+              ref={(ref) => (this.$inputName = ref)}
               onChangeText={this._onChangeName}
               onSubmitEditing={this._onSubmitName}
             />
@@ -162,7 +168,7 @@ export default class ProfileScreen extends React.Component {
                 onPress={this._onEditName}>
                 <Image
                   style={styles.icon}
-                  source={require('assets/ic_edit.png')}
+                  source={require('../../assets/ic_edit.png')}
                 />
               </TouchableOpacity>
             )}
@@ -171,7 +177,10 @@ export default class ProfileScreen extends React.Component {
           {/* Username */}
           <View style={styles.fieldGroup}>
             <View style={styles.iconContainer}>
-              <Image style={styles.icon} source={require('assets/ic_id.png')} />
+              <Image
+                style={styles.icon}
+                source={require('../../assets/ic_id.png')}
+              />
             </View>
             <TextInput
               editable={false}
@@ -184,7 +193,7 @@ export default class ProfileScreen extends React.Component {
             <TouchableOpacity style={styles.logoutBtn} onPress={this._onLogout}>
               <Image
                 style={styles.icon}
-                source={require('assets/ic_next.png')}
+                source={require('../../assets/ic_next.png')}
               />
               <Text style={styles.logoutText}>Logout</Text>
             </TouchableOpacity>

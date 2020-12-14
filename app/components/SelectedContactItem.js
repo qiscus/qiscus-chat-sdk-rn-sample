@@ -1,28 +1,29 @@
+// @ts-check
 import React from 'react';
-import {
-  View,
-  Image,
-  TouchableOpacity,
-  Text,
-  StyleSheet,
-} from 'react-native';
+import {View, Image, TouchableOpacity, Text, StyleSheet} from 'react-native';
 import css from 'css-to-rn.macro';
 
 export default class SelectedContactItem extends React.PureComponent {
   render() {
-    const {contact} = this.props;
+    /** @type import('qiscus-sdk-javascript/typings/model').IQUser */
+    const contact = this.props.contact;
 
     return (
       <View style={styles.container}>
         <View style={styles.avatarContainer}>
-          <Image style={styles.avatar} source={{uri: contact.avatar_url}}/>
-          <TouchableOpacity style={styles.remove} onPress={() => this.props.onRemove()}>
-            <Image style={styles.icon} source={require('assets/delete.png')}/>
+          <Image style={styles.avatar} source={{uri: contact.avatarUrl}} />
+          <TouchableOpacity
+            style={styles.remove}
+            onPress={() => this.props.onRemove()}>
+            <Image
+              style={styles.icon}
+              source={require(// @ts-ignore
+              'assets/delete.png')}
+            />
           </TouchableOpacity>
         </View>
-        <Text style={styles.name}
-              numberOfLines={1}>
-          {contact.name || contact.email}
+        <Text style={styles.name} numberOfLines={1}>
+          {contact.name || contact.id}
         </Text>
       </View>
     );
@@ -52,7 +53,7 @@ const styles = StyleSheet.create(css`
   .avatar {
     height: 40px;
     width: 40px;
-    resizeMode: cover;
+    resize-mode: cover;
     border-radius: 50px;
     overflow: hidden;
   }

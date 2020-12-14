@@ -1,14 +1,14 @@
+//@ts-check
 import React from 'react';
 import {View, StyleSheet, Text, Image, TouchableOpacity} from 'react-native';
 import isSameDay from 'date-fns/isSameDay';
 import format from 'date-fns/format';
-
-import * as Qiscus from 'qiscus';
 import {parseISO} from 'date-fns';
+
+import * as Qiscus from '../qiscus';
 
 export default class RoomItem extends React.PureComponent {
   getTime = (time) => {
-    time = parseISO(time);
     if (isSameDay(time, new Date())) {
       return format(time, 'HH:mm');
     }
@@ -20,16 +20,16 @@ export default class RoomItem extends React.PureComponent {
   };
 
   render() {
+    /** @type import('qiscus-sdk-javascript/typings/model').IQChatRoom */
     const room = this.props.room;
-    const lastComment = room.last_comment_message.startsWith('[file]')
+    const lastComment = room.lastMessage.text.startsWith('[file]')
       ? 'File attachment'
-      : room.last_comment_message;
-    const unreadCount = Number(room.count_notif);
+      : room.lastMessage.text;
     return (
       <TouchableOpacity
         style={styles.container}
         onPress={() => this._onClick(room.id)}>
-        <Image style={styles.avatar} source={{uri: room.avatar}} />
+        <Image style={styles.avatar} source={{uri: room.avatarUrl}} />
         <View style={styles.dataContainer}>
           <View style={styles.content}>
             <Text style={styles.name}>{room.name}</Text>
@@ -37,10 +37,10 @@ export default class RoomItem extends React.PureComponent {
           </View>
           <View style={styles.meta}>
             <Text style={styles.time}>
-              {this.getTime(room.last_comment_message_created_at)}
+              {this.getTime(room.lastMessage.timestamp)}
             </Text>
-            {unreadCount > 0 && (
-              <Text style={styles.unreadCount}>{unreadCount}</Text>
+            {room.unreadCount > 0 && (
+              <Text style={styles.unreadCount}>{room.unreadCount}</Text>
             )}
           </View>
         </View>

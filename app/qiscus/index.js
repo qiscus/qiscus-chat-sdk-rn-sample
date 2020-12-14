@@ -1,6 +1,10 @@
+// @ts-check
 import xs from 'xstream';
 import mitt from 'mitt';
 import QiscusSDK from 'qiscus-sdk-core';
+import Qiscus from 'qiscus-sdk-javascript';
+
+export const q = new Qiscus();
 
 function distinct(stream) {
   let subscription = null;
@@ -45,8 +49,10 @@ export const event$ = xs.create({
   stop() {},
 });
 
-export function init() {
+export async function init() {
   console.log('initiate qiscus');
+  await q.setup(appId);
+
   qiscus.init({
     AppId: appId,
     options: {
@@ -83,13 +89,13 @@ export function init() {
   });
 }
 
-export const currentUser = () => qiscus.userData;
+export const currentUser = () => q.currentUser;
 export const login$ = () =>
   event$.filter((it) => it.kind === 'login-success').map((it) => it.data);
 export const isLogin$ = () =>
   xs
     .periodic(300)
-    .map(() => qiscus.isLogin)
+    .map(() => q.isLogin)
     .compose(distinct)
     .filter((it) => it === true);
 export const newMessage$ = () =>

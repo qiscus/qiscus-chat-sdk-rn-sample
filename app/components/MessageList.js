@@ -1,3 +1,4 @@
+//@ts-check
 import React from 'react';
 import {
   View,
@@ -11,9 +12,9 @@ import {
 import debounce from 'lodash.debounce';
 
 import * as dateFns from 'date-fns';
-import * as Qiscus from 'qiscus';
-import MessageUpload from 'components/MessageUpload';
-import MessageCustom from 'components/MessageCustom';
+import * as Qiscus from '../qiscus';
+import MessageUpload from '../components/MessageUpload';
+import MessageCustom from '../components/MessageCustom';
 
 class AnimatedSending extends React.Component {
   animation = new Animated.Value(0);
@@ -35,7 +36,8 @@ class AnimatedSending extends React.Component {
     });
     return (
       <Animated.Image
-        source={require('assets/ic_sending.png')}
+        // @ts-ignore
+        source={require('../../assets/ic_sending.png')}
         style={[
           styles.iconStatus,
           {
@@ -48,15 +50,15 @@ class AnimatedSending extends React.Component {
 }
 
 export default class MessageList extends React.Component {
+  /** @param {import('qiscus-sdk-javascript/typings/model').IQMessage[]} messages */
   _messageListFormatter = (messages) => {
     const _messages = [];
 
     for (let i = 0; i < messages.length; i++) {
       const message = messages[i];
       const lastMessage = messages[i - 1];
-      const messageDate = new Date(message.timestamp);
-      const lastMessageDate =
-        lastMessage == null ? null : new Date(lastMessage.timestamp);
+      const messageDate = message.timestamp;
+      const lastMessageDate = lastMessage?.timestamp;
       const isSameDay = dateFns.isSameDay(messageDate, lastMessageDate);
       const showDate = lastMessage != null && !isSameDay;
 
@@ -64,7 +66,7 @@ export default class MessageList extends React.Component {
         ...message,
         id: `date-${message.id}`,
         type: 'date',
-        message: dateFns.format(messageDate, 'dd MMM yyyy'),
+        text: dateFns.format(messageDate, 'dd MMM yyyy'),
       };
       if (i === 0 || showDate) _messages.push(dateMessage);
       _messages.push(message);
@@ -72,9 +74,12 @@ export default class MessageList extends React.Component {
 
     return _messages;
   };
+
+  /** @param {import('qiscus-sdk-javascript/typings/model').IQMessage} message */
   _renderMessage = (message) => {
+    /** @type string */
     const type = message.type;
-    const isMe = message.email === Qiscus.currentUser().email;
+    const isMe = message.sender?.id === Qiscus.currentUser().id;
     const isLoadMore = type === 'load-more';
     const isDate = type === 'date';
     const isCustomMessage =
@@ -94,7 +99,7 @@ export default class MessageList extends React.Component {
     const showMeta = isMe && !isDate && !isLoadMore;
     const showMetaOther = !isMe && !isDate && !isLoadMore;
 
-    let content = <Text style={textStyle}>{message.message}</Text>;
+    let content = <Text style={textStyle}>{message.text}</Text>;
 
     if (type === 'upload') content = this._renderUploadMessage(message);
     if (isCustomMessage && message.payload.type === 'image')
@@ -208,7 +213,7 @@ export default class MessageList extends React.Component {
     const id = 0x1011;
     return {
       type: 'load-more',
-      message: 'Load more',
+      text: 'Load more',
       id,
       unique_id: id,
       unique_temp_id: id,

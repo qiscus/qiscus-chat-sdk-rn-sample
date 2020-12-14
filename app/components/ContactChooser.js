@@ -1,4 +1,5 @@
-import React from "react";
+//@ts-check
+import React from 'react';
 import {
   FlatList,
   Image,
@@ -7,45 +8,40 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  TouchableWithoutFeedback
-} from "react-native";
-import css from "css-to-rn.macro";
-import xs from "xstream";
-import debounce from "lodash.debounce";
+  TouchableWithoutFeedback,
+} from 'react-native';
+// @ts-ignore
+import css from 'css-to-rn.macro';
+// @ts-ignore
+import xs from 'xstream';
+import debounce from 'lodash.debounce';
 
-import * as Qiscus from "qiscus";
-import Toolbar from "components/Toolbar";
-import ContactItem from "components/ContactItem";
-import SelectedContactItem from "components/SelectedContactItem";
-import LoadMore from "components/LoadMore";
+import * as Qiscus from '../qiscus';
+import Toolbar from '../components/Toolbar';
+import ContactItem from '../components/ContactItem';
+import SelectedContactItem from '../components/SelectedContactItem';
+import LoadMore from '../components/LoadMore';
 
 export default class ContactChooser extends React.Component {
   state = {
+    /** @type Record<string, import("qiscus-sdk-javascript/typings/model").IQUser> */
     contacts: {},
-    selected: []
+    /** @type import('qiscus-sdk-javascript/typings/model').IQUser[] */
+    selected: [],
   };
 
   componentDidMount() {
-    Qiscus.isLogin$()
-      .take(1)
-      .map(() => xs.from(this.loadContacts()))
-      .flatten()
-      .map(users => users.map(user => ({ ...user, selected: false })))
-      .subscribe({
-        next: users => {
-          const contacts = users.reduce((res, it) => {
-            res[it.id] = it;
-            return res;
-          }, {});
-          this.setState({
-            contacts
-          });
-        }
-      });
+    this.loadContacts().then((users) => {
+      const contacts = users.reduce((res, it) => {
+        res[it.id] = it;
+        return res;
+      }, {});
+      this.setState({contacts});
+    });
   }
 
   render() {
-    const { contacts, selectedContacts } = this;
+    const {contacts, selectedContacts} = this;
 
     return (
       <View style={styles.container}>
@@ -55,18 +51,19 @@ export default class ContactChooser extends React.Component {
             <TouchableOpacity style={styles.toolbarBtn} onPress={this._onBack}>
               <Image
                 style={styles.icon}
-                source={require("assets/ic_back.png")}
+                // @ts-ignore
+                source={require('assets/ic_back.png')}
               />
             </TouchableOpacity>
           )}
           renderRightButton={() => (
             <TouchableOpacity
               style={styles.toolbarBtn}
-              onPress={this._onSubmit}
-            >
+              onPress={this._onSubmit}>
               <Image
                 style={styles.icon}
-                source={require("assets/ic_next.png")}
+                // @ts-ignore
+                source={require('assets/ic_next.png')}
               />
             </TouchableOpacity>
           )}
@@ -75,7 +72,8 @@ export default class ContactChooser extends React.Component {
         <View style={styles.searchContainer}>
           <Image
             style={styles.iconSearch}
-            source={require("assets/ic_magnifier.png")}
+            // @ts-ignore
+            source={require('assets/ic_magnifier.png')}
           />
           <TextInput
             style={styles.inputSearch}
@@ -89,8 +87,8 @@ export default class ContactChooser extends React.Component {
             style={styles.selectedContacts}
             horizontal={true}
             data={selectedContacts}
-            keyExtractor={item => `${item.id}`}
-            renderItem={({ item }) => (
+            keyExtractor={(item) => `${item.id}`}
+            renderItem={({item}) => (
               <SelectedContactItem
                 contact={item}
                 onRemove={() => this._removeContact(item)}
@@ -107,49 +105,56 @@ export default class ContactChooser extends React.Component {
             style={styles.contactFlatList}
             initialNumToRender={20}
             data={contacts}
-            keyExtractor={item => `${item.id}`}
-            renderItem={({ item }) => this._contactItem(item)}
+            keyExtractor={(item) => `${item.id}`}
+            renderItem={({item}) => this._contactItem(item)}
           />
         </View>
       </View>
     );
   }
 
-  loadContacts = (query = "", page = 1) => {
+  /**
+   * @param {string} query
+   * @param {number} page
+   */
+  loadContacts = (query = '', page = 1) => {
     const perPage = 200;
-    return Qiscus.qiscus
-      .getUsers(query, page, perPage)
-      .then(resp => resp.users);
+
+    return Qiscus.q.getUsers(query, page, perPage);
   };
 
-  _onSearch = debounce(text => {
-    console.log("on:search", text);
-    this.loadContacts(text).then(users =>
+  _onSearch = debounce((text) => {
+    console.log('on:search', text);
+    this.loadContacts(text).then((users) =>
       this.setState({
-        contacts: users
-      })
+        contacts: users,
+      }),
     );
   });
   _onBack = () => this.props.onBack();
-  _removeContact = contact => {
-    this.setState(state => ({
-      selected: state.selected.filter(it => it.id !== contact.id)
+  _removeContact = (contact) => {
+    this.setState((state) => ({
+      selected: state.selected.filter((it) => it.id !== contact.id),
     }));
   };
-  _addContact = contact => {
-    this.setState(state => ({
-      selected: [...state.selected, contact]
+  _addContact = (contact) => {
+    this.setState((state) => ({
+      selected: [...state.selected, contact],
     }));
   };
-  _onSelectContact = contact => {
+  _onSelectContact = (contact) => {
     const selected = this.state.selected;
-    const _contact = selected.find(it => it.id === contact.id);
+    const _contact = selected.find((it) => it.id === contact.id);
     if (_contact == null) this._addContact(contact);
     else this._removeContact(contact);
   };
 
+  /**
+   * @param {import('qiscus-sdk-javascript/typings/model').IQUser} item
+   */
   _contactItem(item) {
-    if (item.type && item.type === "load-more") {
+    // @ts-ignore
+    if (item.type && item.type === 'load-more') {
       return <LoadMore onPress={() => this.loadContacts(null, 1)} />;
     }
     return (
@@ -157,11 +162,13 @@ export default class ContactChooser extends React.Component {
         contact={item}
         onSelect={() => this._onSelectContact(item)}
         renderButton={() =>
+          // @ts-ignore
           item.selected && (
             <TouchableWithoutFeedback onPress={() => this._removeContact(item)}>
               <Image
                 style={[styles.icon, styles.selected]}
-                source={require("assets/ic_selected.png")}
+                // @ts-ignore
+                source={require('assets/ic_selected.png')}
               />
             </TouchableWithoutFeedback>
           )
@@ -179,12 +186,13 @@ export default class ContactChooser extends React.Component {
   }
 
   get contacts() {
-    const contacts = Object.values(this.state.contacts).map(item => ({
+    const contacts = Object.values(this.state.contacts).map((item) => ({
       ...item,
-      selected: this.state.selected.findIndex(it => it.id === item.id) >= 0
+      selected: this.state.selected.findIndex((it) => it.id === item.id) >= 0,
     }));
     if (this.isLoadAble) {
-      contacts.push({ type: "load-more", text: "Load more" });
+      // @ts-ignore
+      contacts.push({type: 'load-more', text: 'Load more'});
     }
     return contacts;
   }

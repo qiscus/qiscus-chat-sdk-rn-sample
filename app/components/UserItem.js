@@ -1,19 +1,14 @@
 import React from 'react';
-import {
-  Image,
-  TouchableOpacity,
-  Text,
-  View,
-} from 'react-native';
+import {Image, TouchableOpacity, Text, View} from 'react-native';
 
 export default class UserItem extends React.Component {
   render() {
-    const avatarURL = this.props.user.avatar_url;
-    const username = this.props.user.username;
+    /** @type {import('qiscus-sdk-javascript/typings/model').IQUser} */
+    const user = this.props.user;
+    const avatarURL = user.avatarUrl;
+    const username = user.name;
     return (
-      <TouchableOpacity
-        onPress={this.props.onPress}
-      >
+      <TouchableOpacity onPress={this.props.onPress}>
         <View
           style={{
             display: 'flex',
@@ -22,8 +17,7 @@ export default class UserItem extends React.Component {
             justifyContent: 'flex-start',
             alignItems: 'center',
             paddingHorizontal: 10,
-          }}
-        >
+          }}>
           <Image
             source={{uri: avatarURL}}
             style={{
@@ -35,17 +29,18 @@ export default class UserItem extends React.Component {
               height: 30,
             }}
           />
-          <View style={{
-            flex: 1,
-            marginLeft: 10,
-            fontSize: 14,
-            color: '#2c2c36',
-            borderBottomWidth: 1,
-            borderBottomColor: '#ececec',
-            height: '100%',
-            display: 'flex',
-            justifyContent: 'center',
-          }}>
+          <View
+            style={{
+              flex: 1,
+              marginLeft: 10,
+              fontSize: 14,
+              color: '#2c2c36',
+              borderBottomWidth: 1,
+              borderBottomColor: '#ececec',
+              height: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+            }}>
             <Text>{username}</Text>
           </View>
         </View>

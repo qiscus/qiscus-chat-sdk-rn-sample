@@ -1,3 +1,7 @@
+/.yarn
+/__tests__
+/ios
+
 # OSX
 #
 .DS_Store

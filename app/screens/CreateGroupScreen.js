@@ -1,17 +1,19 @@
-import React from "react";
+//@ts-check
+import React from 'react';
 
-import ContactChooser from "components/ContactChooser";
-import GroupInfo from "components/GroupInfo";
+import ContactChooser from '../components/ContactChooser';
+import GroupInfo from '../components/GroupInfo';
 
 export default class CreateGroupScreen extends React.Component {
   state = {
+    /** @type import('qiscus-sdk-javascript/typings/model').IQUser[] */
     selectedContacts: [],
-    page: "contact"
+    page: 'contact',
   };
 
   render() {
-    const { page, selectedContacts } = this.state;
-    if (page === "contact")
+    const {page, selectedContacts} = this.state;
+    if (page === 'contact')
       return (
         <ContactChooser
           navigation={this.props.navigation}
@@ -23,7 +25,7 @@ export default class CreateGroupScreen extends React.Component {
       <GroupInfo
         contacts={selectedContacts}
         navigation={this.props.navigation}
-        onBack={() => this.setState({ page: "contact" })}
+        onBack={() => this.setState({page: 'contact'})}
       />
     );
   }
@@ -31,10 +33,10 @@ export default class CreateGroupScreen extends React.Component {
   _onBack = () => {
     this.props.navigation.goBack();
   };
-  _onSelect = contacts => {
+  _onSelect = (contacts) => {
     this.setState({
       selectedContacts: contacts,
-      page: "info"
+      page: 'info',
     });
   };
 }

@@ -1,39 +1,47 @@
-import React from "react";
+//@ts-check
+
+import React from 'react';
 import {
   View,
   Text,
   FlatList,
   Image,
   TouchableOpacity,
-  StyleSheet
-} from "react-native";
-import css from "css-to-rn.macro";
-import * as Qiscus from "qiscus";
-import p from "utils/p";
-import Toolbar from "components/Toolbar";
-import UserItem from "components/UserItem";
+  StyleSheet,
+} from 'react-native';
+import css from 'css-to-rn.macro';
+import * as Qiscus from '../qiscus';
+import p from '../utils/p';
+import Toolbar from '../components/Toolbar';
+import UserItem from '../components/UserItem';
 
 export default class UserListScreen extends React.Component {
-  state = { users: [] };
+  state = {
+    /** @type import('qiscus-sdk-javascript/typings/model').IQUser[] */
+    users: [],
+  };
   perPage = 100;
 
-  _onUserClick = async userId => {
-    const [err, room] = await p(Qiscus.qiscus.chatTarget(userId));
-    if (err) return console.log("error when getting room", err);
+  /**
+   * @param {string} userId
+   */
+  _onUserClick = async (userId) => {
+    const [err, room] = await p(Qiscus.q.chatUser(userId, {}));
+    if (err) return console.log('error when getting room', err);
 
-    this.props.navigation.push("Chat", {
-      roomId: room.id
+    this.props.navigation.push('Chat', {
+      roomId: room.id,
     });
   };
 
   _loadUsers = (query = null) => {
-    Qiscus.qiscus
+    Qiscus.q
       .getUsers(query, 1, this.perPage)
-      .then(resp => {
-        this.setState({ users: resp.users });
+      .then((users) => {
+        this.setState({users});
       })
-      .catch(error => {
-        console.log("Error when getting user list", error);
+      .catch((error) => {
+        console.log('Error when getting user list', error);
       });
   };
 
@@ -41,27 +49,20 @@ export default class UserListScreen extends React.Component {
     this.props.navigation.goBack();
   };
 
-  _onEndReached = ({ distanceFromEnd }) => {
+  _onEndReached = ({distanceFromEnd}) => {
     // console.log("on end reached", distanceFromEnd);
   };
 
   componentDidMount() {
-    const subscription = Qiscus.isLogin$()
-      .take(1)
-      .subscribe({
-        next: () => {
-          if (subscription && subscription.unsubscribe)
-            subscription.unsubscribe();
-          this._loadUsers();
-        }
-      });
+    this._loadUsers();
   }
 
-  _renderItem = item => {
-    if (item.type === "load-more") return this._loadMore();
-    return (
-      <UserItem user={item} onPress={() => this._onUserClick(item.email)} />
-    );
+  /**
+   * @param {import('qiscus-sdk-javascript/typings/model').IQUser} item
+   */
+  _renderItem = (item) => {
+    // if (item.type === 'load-more') return this._loadMore();
+    return <UserItem user={item} onPress={() => this._onUserClick(item.id)} />;
   };
 
   render() {
@@ -72,18 +73,21 @@ export default class UserListScreen extends React.Component {
           title="Choose Contacts"
           renderLeftButton={() => (
             <TouchableOpacity onPress={this._onBack}>
-              <Image source={require("assets/ic_back.png")} />
+              <Image
+                source={require(// @ts-ignore
+                'assets/ic_back.png')}
+              />
             </TouchableOpacity>
           )}
         />
         <View>
           <TouchableOpacity
             style={styles.createGroupBtn}
-            onPress={this._onCreateGroup}
-          >
+            onPress={this._onCreateGroup}>
             <Image
               style={styles.createGroupIcon}
-              source={require("assets/ic_new_chat-group.png")}
+              // @ts-ignore
+              source={require('assets/ic_new_chat-group.png')}
             />
             <Text style={styles.createGroupBtnText}>Create Group Chat</Text>
           </TouchableOpacity>
@@ -93,16 +97,16 @@ export default class UserListScreen extends React.Component {
         </View>
         <FlatList
           data={users}
-          keyExtractor={it => `key-${it.email}`}
+          keyExtractor={(it) => `key-${it.id}`}
           onEndReached={this._onEndReached}
-          renderItem={({ item }) => this._renderItem(item)}
+          renderItem={({item}) => this._renderItem(item)}
         />
       </View>
     );
   }
 
   _onCreateGroup = () => {
-    this.props.navigation.navigate("CreateGroup");
+    this.props.navigation.navigate('CreateGroup');
   };
 }
 
