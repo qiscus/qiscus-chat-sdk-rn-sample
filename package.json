@@ -19,7 +19,6 @@
     "hooks.macro": "^1.1.2",
     "lodash.debounce": "^4.0.8",
     "mitt": "^2.1.0",
-    "qiscus-sdk-core": "^2.10.4",
     "qiscus-sdk-javascript": "^3.1.1-beta.0",
     "react": "16.13.1",
     "react-native": "0.63.3",
