@@ -1,5 +1,4 @@
-
-const re = /.+\.(jpe?g|gif|png)$/ig;
+const re = /.+\.(jpe?g|gif|png)$/gi;
 export default function getFileType(filename) {
   const match = re.test(filename);
   if (match) return 'image';
