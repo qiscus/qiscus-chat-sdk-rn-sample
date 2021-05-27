@@ -42,33 +42,6 @@ export default class RoomListScreen extends React.Component {
         this._onNewMessage$(message);
       },
     });
-
-    this.subscription2 = Firebase.onNotificationOpened$().subscribe({
-      next: (data) => {
-        const notification = data.notification;
-        AsyncStorage.setItem('lastNotificationId', notification.notificationId);
-
-        const roomId = notification.data.qiscus_room_id;
-        this.props.navigation.push('Chat', {
-          roomId,
-        });
-      },
-    });
-    Firebase.getInitialNotification().then(async (data) => {
-      if (data == null) return;
-      const notification = data.notification;
-
-      const [err, lastNotificationId] = await p(
-        AsyncStorage.getItem('lastNotificationId'),
-      );
-      if (err) return console.log('error getting last notif id');
-
-      if (lastNotificationId !== notification.notificationId) {
-        AsyncStorage.setItem('lastNotificationId', notification.notificationId);
-        const roomId = data.notification.data.qiscus_room_id;
-        this.props.navigation.push('Chat', {roomId});
-      }
-    });
   }
 
   componentWillUnmount() {

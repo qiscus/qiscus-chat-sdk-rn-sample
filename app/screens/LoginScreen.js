@@ -43,7 +43,7 @@ export function LoginPage(props) {
 
   const onSubmit = useCallback(() => {
     Qiscus.qiscus
-      .setUser(userId, userKey)
+      .setUser(userId, userKey, userId)
       .then((res) => console.log('success login', res))
       .catch((err) => console.log('Failed login', err));
   }, [userId, userKey]);

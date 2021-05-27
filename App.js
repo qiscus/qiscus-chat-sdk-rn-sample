@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {StyleSheet, StatusBar, Platform, View} from 'react-native';
+import {StyleSheet, StatusBar, Platform, View, SafeAreaView} from 'react-native';
 import {createAppContainer} from 'react-navigation';
 import {createStackNavigator} from 'react-navigation-stack';
 import AsyncStorage, {
@@ -46,34 +46,16 @@ export default function Application(props) {
         console.log('error getting login data', error);
       },
     );
-
-    const subscription = Firebase.initiate$()
-      .map(() => Firebase.createChannel())
-      .map(() => Firebase.requestPermission$())
-      .compose(flattenConcurrently)
-      .map(() => Firebase.onNotification$())
-      .compose(flattenConcurrently)
-      .map((it) => Firebase.createNotification(it))
-      .subscribe({
-        next(notification) {
-          Firebase.displayNotification(notification);
-        },
-        error(error) {
-          console.log('error initiate firebase', error);
-        },
-      });
-
-    return () => {
-      subscription.unsubscribe();
-    };
   }, []);
   return (
     <>
-      {Platform.OS === 'ios' && <View style={{height: 20}} />}
-      <AppContainer
-        style={styles.container}
-        ref={(ref) => (this.navigation = ref && ref._navigation)}
-      />
+      {/* {Platform.OS === 'ios' && <View style={{height: 20}} />} */}
+      <SafeAreaView style={styles.safeAreaView}>
+        <AppContainer
+          style={styles.container}
+          ref={(ref) => (this.navigation = ref && ref._navigation)}
+        />
+      </SafeAreaView>
     </>
   );
 }
@@ -81,5 +63,8 @@ export default function Application(props) {
 const styles = StyleSheet.create({
   container: {
     marginTop: StatusBar.currentHeight,
+  },
+  safeAreaView: {
+    flex: 1,
   },
 });
