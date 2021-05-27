@@ -7,7 +7,10 @@ import AsyncStorage, {
 } from '@react-native-async-storage/async-storage';
 
 import * as Qiscus from 'qiscus';
-import * as Firebase from 'utils/firebase';
+// import * as Firebase from 'utils/firebase';
+import firebase from '@react-native-firebase/app'
+import messaging from '@react-native-firebase/messaging'
+import PushNotification from 'react-native-push-notification'
 import {LoginPage as LoginScreen} from 'screens/LoginScreen';
 import ProfileScreen from 'screens/ProfileScreen';
 import RoomListScreen from 'screens/RoomListScreen';
@@ -47,6 +50,37 @@ export default function Application(props) {
       },
     );
   }, []);
+
+  useEffect(() => {
+    if (!messaging().hasPermission()) {
+      messaging().requestPermission()
+    }
+
+    // firebase.initializeApp()
+    PushNotification.channelExists('general', (exists) => {
+      if (!exists) {
+        PushNotification.createChannel({
+          channelId: 'general',
+          channelName: 'General'
+        }, (created) => {
+          console.log('channel created', created)
+        })
+      }
+    });
+
+    messaging().onMessage(async (message) => {
+      console.log('@fcm.message', message)
+      let payload = JSON.parse(message.data.payload)
+      console.log('payload:', payload)
+      PushNotification.localNotification({
+        message: payload.message,
+        allowWhileIdle: true,
+        channelId: 'general',
+        title: 'New message',
+      })
+    })
+  }, [])
+
   return (
     <>
       {/* {Platform.OS === 'ios' && <View style={{height: 20}} />} */}
