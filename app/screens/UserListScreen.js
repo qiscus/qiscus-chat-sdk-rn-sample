@@ -87,6 +87,16 @@ export default class UserListScreen extends React.Component {
             />
             <Text style={styles.createGroupBtnText}>Create Group Chat</Text>
           </TouchableOpacity>
+          <TouchableOpacity
+              style={styles.createGroupBtn}
+              onPress={this._onCreateChannel}
+          >
+            <Image
+                style={styles.createGroupIcon}
+                source={require("assets/ic_new_chat-group.png")}
+            />
+            <Text style={styles.createGroupBtnText}>Create Channel</Text>
+          </TouchableOpacity>
         </View>
         <View style={styles.separator}>
           <Text style={styles.separatorText}>Contact</Text>
@@ -103,6 +113,10 @@ export default class UserListScreen extends React.Component {
 
   _onCreateGroup = () => {
     this.props.navigation.navigate("CreateGroup");
+  };
+
+  _onCreateChannel = () => {
+    this.props.navigation.navigate("CreateChannel");
   };
 }
 

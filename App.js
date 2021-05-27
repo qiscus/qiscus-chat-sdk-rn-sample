@@ -14,6 +14,7 @@ import RoomListScreen from 'screens/RoomListScreen';
 import ChatScreen from 'screens/ChatScreen';
 import UserListScreen from 'screens/UserListScreen';
 import CreateGroupScreen from 'screens/CreateGroupScreen';
+import CreateChannelScreen from 'screens/CreateChannelScreen';
 import RoomInfoScreen from 'screens/RoomInfo';
 import flattenConcurrently from 'xstream/extra/flattenConcurrently';
 
@@ -25,6 +26,7 @@ const AppNavigator = createStackNavigator(
     Chat: ChatScreen,
     UserList: UserListScreen,
     CreateGroup: CreateGroupScreen,
+    CreateChannel: CreateChannelScreen,
     RoomInfo: RoomInfoScreen,
   },
   {headerMode: 'none', initialRouteName: 'Login'},

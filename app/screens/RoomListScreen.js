@@ -34,6 +34,7 @@ export default class RoomListScreen extends React.Component {
       .subscribe({
         next: (rooms) => {
           this.setState({rooms});
+          console.log(rooms);
           subscription.unsubscribe();
         },
       });
