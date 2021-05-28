@@ -10,5 +10,9 @@ Qiscus.qiscus.createGroupRoom(name, userIds, {
 				admin: adminGroup,
 			})
 ```
+notes :
+param 'admin' will used for determining user logged in is admin on group or not and 'isBroadCast' will used make group to broadcast that only admin can post or not
 
-
+Screenshot :
+1. Create broadcast
+![Create brodcast](/screenshot/1.png)
