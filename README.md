@@ -18,3 +18,15 @@ Screenshot :
 
 
 ![Create brodcast](/screenshot/1.png)
+
+2. Set param only admin can post or not also , add participant
+
+![Create brodcast](/screenshot/2.png)
+
+3. Change broadcast info
+
+![Create brodcast](/screenshot/3.png)
+
+4. Check user not admin enter room broadcast
+
+![Create brodcast](/screenshot/4.png)
