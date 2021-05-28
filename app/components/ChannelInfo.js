@@ -120,7 +120,7 @@ export default function _ChannelInfo(props) {
 			</View>
 			<View style={styles.participantListContainer}>
 				<View style={styles.participantsHeader}>
-					<Text style={styles.participantsHeaderText}>Participants</Text>
+					<Text style={styles.participantsHeaderText}>Add Participants</Text>
 				</View>
 				<FlatList
 					style={styles.participantList}

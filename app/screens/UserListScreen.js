@@ -95,7 +95,7 @@ export default class UserListScreen extends React.Component {
                 style={styles.createGroupIcon}
                 source={require("assets/ic_new_chat-group.png")}
             />
-            <Text style={styles.createGroupBtnText}>Broadcast List</Text>
+            <Text style={styles.createGroupBtnText}>Create broadcast</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.separator}>

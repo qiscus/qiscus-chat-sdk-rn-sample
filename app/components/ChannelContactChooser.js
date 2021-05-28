@@ -24,7 +24,7 @@ export default class ChannelContactChooser extends React.Component {
 	state = {
 		contacts: {},
 		selected: [],
-		isBroadCast: true,
+		isBroadCast: false,
 	};
 
 	componentDidMount() {
@@ -112,7 +112,7 @@ export default class ChannelContactChooser extends React.Component {
 
 				<View style={styles.contactList}>
 					<View style={styles.separator}>
-						<Text style={styles.separatorText}>Participants</Text>
+						<Text style={styles.separatorText}>Add Participants</Text>
 					</View>
 					<FlatList
 						style={styles.contactFlatList}
