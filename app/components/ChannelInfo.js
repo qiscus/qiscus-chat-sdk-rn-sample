@@ -46,7 +46,7 @@ export default function _ChannelInfo(props) {
 		const isBroadCastGroup = props.isBroadCast;
 		const adminGroup = Qiscus.qiscus?.userData?.email;
 		Qiscus.qiscus
-			.createGroupRoom(name, userIds, {
+			.createGroupRoom(userIds, name, {
 				avatarURL: avatarUrl,
 				isBroadCast: isBroadCastGroup ? 'broadcast' : 'not-broadcast',
 				admin: adminGroup,
@@ -55,7 +55,7 @@ export default function _ChannelInfo(props) {
 				props.navigation.replace('Chat', {
 					roomId: room.id,
 				});
-				console.log(adminGroup);
+				console.log('callback', room);
 			})
 			.catch((error) => {
 				console.log('error', error);
@@ -110,10 +110,10 @@ export default function _ChannelInfo(props) {
 					</TouchableWithoutFeedback>
 				</View>
 				<View style={styles.groupNameContainer}>
-					<Text style={styles.groupNameLabel}>Group Name</Text>
+					<Text style={styles.groupNameLabel}>Broadcast Name</Text>
 					<TextInput
 						style={styles.groupNameInput}
-						placeholder="Group name"
+						placeholder="Broadcast name"
 						onChangeText={(text) => (name = text)}
 					/>
 				</View>
@@ -166,7 +166,7 @@ export class ChannelInfo extends React.Component {
 		return (
 			<View style={styles.container}>
 				<Toolbar
-					title="Channel Info"
+					title="Broadcast Info"
 					renderLeftButton={() => (
 						<TouchableOpacity
 							style={styles.toolbarBtn}
@@ -205,10 +205,10 @@ export class ChannelInfo extends React.Component {
 						</TouchableWithoutFeedback>
 					</View>
 					<View style={styles.groupNameContainer}>
-						<Text style={styles.groupNameLabel}>Group Name</Text>
+						<Text style={styles.groupNameLabel}>Broadcast Name</Text>
 						<TextInput
 							style={styles.groupNameInput}
-							placeholder="Group name"
+							placeholder="Broadcast name"
 							onChangeText={(text) => this.setState({ name: text })}
 						/>
 					</View>
@@ -262,6 +262,7 @@ export class ChannelInfo extends React.Component {
 				this.props.navigation.replace('Chat', {
 					roomId: room.id,
 				});
+				console.log('not call', room);
 			})
 			.catch((error) => {
 				console.log('error', error);
