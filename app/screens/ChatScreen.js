@@ -94,7 +94,7 @@ export default class ChatScreen extends React.Component {
 		const isUserAdmin =
 			JSON.parse(options)?.admin === Qiscus.qiscus?.userData?.email;
 		const isBroadcast =
-			JSON.parse(options)?.isBroadCast === 'true' ||
+			JSON.parse(options)?.isBroadCast ||
 			JSON.parse(options)?.isBroadCast === 'broadcast';
 		if (isBroadcast && !isUserAdmin) {
 			onlyAdminCanPost = true;

@@ -256,7 +256,7 @@ export class ChannelInfo extends React.Component {
 		Qiscus.qiscus
 			.createGroupRoom(name, userIds, {
 				isBroadCast: isBroadCast,
-				adminGroup: adminGroup,
+				admin: adminGroup,
 			})
 			.then((room) => {
 				this.props.navigation.replace('Chat', {
