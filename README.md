@@ -15,4 +15,6 @@ param 'admin' will used for determining user logged in is admin on group or not 
 
 Screenshot :
 1. Create broadcast
+
+
 ![Create brodcast](/screenshot/1.png)
