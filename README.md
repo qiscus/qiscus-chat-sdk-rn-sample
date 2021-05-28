@@ -1,5 +1,5 @@
 ## Feature Broadcast
-This branch will show how group can possible have feature like broadcast.
+This branch will show how group can possible have feature like broadcast by utilizing the option parameter as described in the following doc
 https://documentation.qiscus.com/chat-sdk-javascript/chat-room#create-group-chat-room-with-metadata
 
 for example :
