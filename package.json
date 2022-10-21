@@ -29,7 +29,7 @@
     "react-native-gesture-handler": "^1.10.3",
     "react-native-image-picker": "^3.8.1",
     "react-native-push-notification": "^7.3.1",
-    "react-native-reanimated": "^2.1.0",
+    "react-native-reanimated": "^2.10.0",
     "react-native-safe-area-context": "^3.2.0",
     "react-native-screens": "^3.3.0",
     "react-navigation": "^4.4.4",
