@@ -52,7 +52,10 @@ export default class RoomListScreen extends React.Component {
   _onNewMessage$ = (message) => {
     const roomId = message.room_id;
     const room = this.state.rooms.find((r) => r.id === roomId);
-    if (room == null) return;
+    if (room == null) {
+      this.componentDidMount()
+      return;
+    }
     room.count_notif = (Number(room.count_notif) || 0) + 1;
     room.last_comment_message = message.message;
 
