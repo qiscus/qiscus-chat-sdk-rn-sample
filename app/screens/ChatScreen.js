@@ -7,7 +7,10 @@ import {
 	TouchableOpacity,
 	View,
 } from 'react-native';
-import * as ImagePicker from 'react-native-image-picker';
+import DocumentPicker, {
+	isInProgress,
+	types,
+} from 'react-native-document-picker';
 import css from 'css-to-rn.macro';
 import debounce from 'lodash.debounce';
 import xs from 'xstream';
@@ -297,64 +300,44 @@ export default class ChatScreen extends React.Component {
 		toast('Success sending message!');
 	};
 
+	_handleError = (err) => {
+		if (DocumentPicker.isCancel(err)) {
+			console.warn('cancelled');
+			// User cancelled the picker, exit any dialogs or menus and move on
+		} else if (isInProgress(err)) {
+			console.warn(
+				'multiple pickers were opened, only the last will be considered'
+			);
+		} else {
+			throw err;
+		}
+	};
+
 	_onSelectFile = () => {
-		ImagePicker.launchImageLibrary(
-			{
-				selectionLimit: 0,
-				mediaType: 'photo',
-				includeBase64: false,
-			},
-			(resp) => {
-				if (resp.didCancel) {
-					return console.log('user cancel');
-				}
-				if (resp.error) {
-					return console.log('error when getting file', resp.error);
-				}
-
-				const message = this._prepareFileMessage('File attachment', resp.uri);
-				this._addMessage(message, true)
-					.then(() => {
-						const name = resp.name;
-						const obj = {
-							uri: resp.uri,
-							type: resp.type,
-							name: resp.fileName,
-						};
-
-						return Qiscus.qiscus.upload(obj, (error, progress, fileURL) => {
-							if (error) {
-								return console.log('error when uploading', error);
-							}
-							if (progress) {
-								return console.log(progress.percent);
-							}
-							if (fileURL != null) {
-								const payload = JSON.stringify({
-									type: 'image',
-									content: {
-										url: fileURL,
-										file_name: name,
-										caption: '',
-									},
-								});
-								Qiscus.qiscus
-									.sendComment(
-										this.state.room.id,
-										message.message,
-										message.uniqueId,
-										'custom', // message type
-										payload
-									)
-									.then((resp) => {});
-							}
-						});
-					})
-					.catch((error) => {
-						console.log('Catch me if you can', error);
-					});
-			}
-		);
+		DocumentPicker.pick({
+			allowMultiSelection: true,
+			type: [types.allFiles],
+		})
+			.then((resp) => {
+				resp.map((responses)=> {
+					let fileName = responses.name;
+					if (!fileName) {
+						const _fileName = responses.uri.split('/').pop();
+						const _fileType = responses.type
+							? responses.type.split('/').pop()
+							: 'jpeg';
+						fileName = `${_fileName}.${_fileType}`;
+					}
+					const source = {
+						uri: responses.uri,
+						name: fileName,
+						type: responses.type,
+						size: responses.size,
+					};
+					this._onSendingFile(source)
+				})
+			})
+			.catch(this._handleError);
 	};
 
 	_addMessage = (message, scroll = false) =>
@@ -454,6 +437,43 @@ export default class ChatScreen extends React.Component {
 
 	get messages() {
 		return this._sortMessage(Object.values(this.state.messages));
+	}
+
+	_onSendingFile(source) {
+		const message = this._prepareFileMessage('File attachment', source.uri);
+		this._addMessage(message, true)
+			.then(() => {
+				return Qiscus.qiscus.upload(source, (error, progress, fileURL) => {
+					if (error) {
+						return console.log('error when uploading', error);
+					}
+					if (progress) {
+						return console.log(progress.percent);
+					}
+					if (fileURL != null) {
+						const payload = JSON.stringify({
+							type: 'image',
+							content: {
+								url: fileURL,
+								file_name: source.name,
+								caption: '',
+							},
+						});
+						Qiscus.qiscus
+							.sendComment(
+								this.state.room.id,
+								message.message,
+								message.uniqueId,
+								'custom', // message type
+								payload
+							)
+							.then((resp) => {});
+					}
+				});
+			})
+			.catch((error) => {
+				console.log('Catch me if you can', error);
+			});
 	}
 }
 

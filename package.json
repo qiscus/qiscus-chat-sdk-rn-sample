@@ -26,6 +26,7 @@
     "qiscus-sdk-core": "^2.10.16",
     "react": "17.0.2",
     "react-native": "0.64.1",
+    "react-native-document-picker": "^8.2.0",
     "react-native-gesture-handler": "^1.10.3",
     "react-native-image-picker": "^3.8.1",
     "react-native-push-notification": "^7.3.1",
