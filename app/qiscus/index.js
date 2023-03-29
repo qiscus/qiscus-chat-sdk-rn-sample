@@ -32,7 +32,7 @@ function distinct(stream) {
 }
 
 export const qiscus = new QiscusSDK();
-const appId = 'qchatsdk--fmugym2npzl';
+const appId = 'sdksample';
 
 const event = mitt();
 export const event$ = xs.create({
