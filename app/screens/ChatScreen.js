@@ -22,6 +22,7 @@ import Toolbar from 'components/Toolbar';
 import MessageList from 'components/MessageList';
 import Form from 'components/Form';
 import Empty from 'components/EmptyChat';
+import {isUnSupportFileType} from "../qiscus";
 
 export default class ChatScreen extends React.Component {
 	state = {
@@ -334,6 +335,16 @@ export default class ChatScreen extends React.Component {
 						type: responses.type,
 						size: responses.size,
 					};
+					if (isUnSupportFileType(source?.name)) {
+						return Promise.reject('File not supported');
+					}
+					let sizeInMB = parseFloat((source.size / (1024 * 1024)).toFixed(2));
+					if (isNaN(sizeInMB)) {
+						return Promise.reject('File size required');
+					}
+					if (!(sizeInMB <= 20)) {
+						return Promise.reject('File size over');
+					}
 					this._onSendingFile(source)
 				})
 			})

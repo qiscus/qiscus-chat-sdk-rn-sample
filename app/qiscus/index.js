@@ -1,6 +1,7 @@
 import xs from 'xstream';
 import mitt from 'mitt';
 import QiscusSDK from 'qiscus-sdk-core';
+import { Platform } from 'react-native';
 
 function distinct(stream) {
 	let subscription = null;
@@ -46,6 +47,29 @@ export const event$ = xs.create({
 	},
 	stop() {},
 });
+export const getFileExtension = (name) =>
+	name?.slice((Math.max(0, name.lastIndexOf('.')) || Infinity) + 1);
+export let SupportImageType = ['png', 'jpg', 'jpeg', 'gif'];
+export let SupportVideoType =
+	Platform.OS === 'android' ? ['mp4'] : ['mp4', 'mov'];
+export let SupportDocumentType = [
+	'doc',
+	'docx',
+	'xls',
+	'xlsx',
+	'ppt',
+	'pptx',
+	'odp',
+	'ods',
+	'odt',
+	'pdf',
+	'apk'
+];
+
+export const isUnSupportFileType = (name) =>
+	!SupportImageType.concat(SupportVideoType, SupportDocumentType).includes(
+		getFileExtension(name?.toLowerCase())
+	);
 
 export function init() {
 	console.log('initiate qiscus');
