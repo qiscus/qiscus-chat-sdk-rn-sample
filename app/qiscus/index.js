@@ -49,9 +49,22 @@ export const event$ = xs.create({
 });
 export const getFileExtension = (name) =>
 	name?.slice((Math.max(0, name.lastIndexOf('.')) || Infinity) + 1);
+/*
+Just Example for limit type of media file (image or video) , in Qiscus we support all type
+ */
 export let SupportImageType = ['png', 'jpg', 'jpeg', 'gif'];
 export let SupportVideoType =
 	Platform.OS === 'android' ? ['mp4'] : ['mp4', 'mov'];
+
+export const isImageFile = (name) => {
+	return SupportImageType.includes(getFileExtension(name?.toLowerCase()));
+}
+
+export const isVideoFile = (name) => SupportVideoType.includes(getFileExtension(name?.toLowerCase()))
+
+/*
+Just Example for limit type of attachment file, in Qiscus we support all type
+ */
 export let SupportDocumentType = [
 	'doc',
 	'docx',
@@ -66,6 +79,9 @@ export let SupportDocumentType = [
 	'apk'
 ];
 
+/*
+Just Example for limit supported file, in Qiscus we support all type
+ */
 export const isUnSupportFileType = (name) =>
 	!SupportImageType.concat(SupportVideoType, SupportDocumentType).includes(
 		getFileExtension(name?.toLowerCase())
