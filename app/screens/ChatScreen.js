@@ -22,7 +22,7 @@ import Toolbar from 'components/Toolbar';
 import MessageList from 'components/MessageList';
 import Form from 'components/Form';
 import Empty from 'components/EmptyChat';
-import {isUnSupportFileType} from "../qiscus";
+import {getFileExtension, isImageFile, isUnSupportFileType, isVideoFile} from "../qiscus";
 
 export default class ChatScreen extends React.Component {
 	state = {
@@ -450,11 +450,17 @@ export default class ChatScreen extends React.Component {
 		return this._sortMessage(Object.values(this.state.messages));
 	}
 
-	_onSendingFile(source) {
-		const message = this._prepareFileMessage('File attachment', source.uri);
+	_onSendingFile(docs) {
+		console.log(docs);
+		const message = this._prepareFileMessage('File attachment '+getFileExtension(docs.name), docs.uri);
 		this._addMessage(message, true)
 			.then(() => {
-				return Qiscus.qiscus.upload(source, (error, progress, fileURL) => {
+				const obj = {
+					uri: docs.uri,
+					type: docs.type,
+					name: docs.name,
+				};
+				return Qiscus.qiscus.upload(obj, (error, progress, fileURL) => {
 					if (error) {
 						return console.log('error when uploading', error);
 					}
@@ -463,10 +469,10 @@ export default class ChatScreen extends React.Component {
 					}
 					if (fileURL != null) {
 						const payload = JSON.stringify({
-							type: 'image',
+							type: isImageFile(docs.name) || isVideoFile(docs.name) ? 'image' : docs.type,
 							content: {
 								url: fileURL,
-								file_name: source.name,
+								file_name: docs.name,
 								caption: '',
 							},
 						});
@@ -476,9 +482,11 @@ export default class ChatScreen extends React.Component {
 								message.message,
 								message.uniqueId,
 								'custom', // message type
-								payload
+								payload,
 							)
-							.then((resp) => {});
+							.then((resp) => {
+								console.log('response', resp)
+							});
 					}
 				});
 			})
