@@ -1,5 +1,7 @@
 import React from "react";
 import { View, Text, Image } from "react-native";
+import {isVideoFile} from "../qiscus";
+import * as Qiscus from "../qiscus";
 
 export default class MessageCustom extends React.Component {
   render() {
@@ -28,7 +30,7 @@ export default class MessageCustom extends React.Component {
           {type === "image" && (
             <Image
               style={{ width: "100%", height: "100%", resizeMode: "cover" }}
-              source={{ uri: imageURI }}
+              source={{ uri: isVideoFile(imageURI) ? Qiscus.qiscus.getThumbnailURL(imageURI) : imageURI }}
             />
           )}
         </View>
