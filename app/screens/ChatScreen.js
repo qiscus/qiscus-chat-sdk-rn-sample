@@ -1,6 +1,7 @@
 import React from 'react';
 import {
-	Image,
+	Button,
+	Image, Modal,
 	StatusBar,
 	StyleSheet,
 	Text,
@@ -23,6 +24,7 @@ import MessageList from 'components/MessageList';
 import Form from 'components/Form';
 import Empty from 'components/EmptyChat';
 import {getFileExtension, isImageFile, isUnSupportFileType, isVideoFile} from "../qiscus";
+import * as ImagePicker from 'react-native-image-picker';
 
 export default class ChatScreen extends React.Component {
 	state = {
@@ -33,6 +35,7 @@ export default class ChatScreen extends React.Component {
 		isTyping: false,
 		lastOnline: null,
 		typingUsername: null,
+		isModalVisible: false
 	};
 
 	componentDidMount() {
@@ -158,9 +161,17 @@ export default class ChatScreen extends React.Component {
 					/>
 				)}
 
+				<Modal visible={this.state.isModalVisible} animationType="slide">
+					<View>
+						<Text>Please select an option:</Text>
+						<Button title="File" onPress={this._onSelectFile} />
+						<Button title="Image" onPress={this._onSelectImage}/>
+					</View>
+				</Modal>
+
 				<Form
 					onSubmit={this._submitMessage}
-					onSelectFile={this._onSelectFile}
+					onSelectFile={this._onSelectModal}
 				/>
 			</View>
 		);
@@ -206,6 +217,13 @@ export default class ChatScreen extends React.Component {
 			}
 		);
 	}, 300);
+
+	_onSelectModal = () => {
+		this.setState(
+			{
+				isModalVisible: true,
+			})
+	};
 	_onOnline = (data) => {
 		this.setState({
 			isOnline: data.isOnline,
@@ -315,6 +333,10 @@ export default class ChatScreen extends React.Component {
 	};
 
 	_onSelectFile = () => {
+		this.setState(
+			{
+				isModalVisible: false,
+			});
 		DocumentPicker.pick({
 			allowMultiSelection: true,
 			type: [types.allFiles],
@@ -349,6 +371,73 @@ export default class ChatScreen extends React.Component {
 				})
 			})
 			.catch(this._handleError);
+	};
+
+	/*
+	mediaType: MediaType;
+  maxWidth?: number;
+  maxHeight?: number;
+  quality?: PhotoQuality;
+  videoQuality?: AndroidVideoOptions | iOSVideoOptions;
+  includeBase64?: boolean;
+	 */
+
+	_onSelectImage = () => {
+		this.setState(
+			{
+				isModalVisible: false,
+			});
+		ImagePicker.launchImageLibrary(
+			{
+				mediaType: "photo",
+				includeBase64: false
+			},
+			(resp) => {
+				if (resp.didCancel) return console.log('user cancel');
+				if (resp.errorMessage)
+					return console.log('error when getting file', resp.errorMessage);
+
+
+				const message = this._prepareFileMessage('File attachment', resp.uri);
+				this._addMessage(message, true)
+					.then(() => {
+						const name = resp.name;
+						const obj = {
+							uri: resp.uri,
+							type: resp.type,
+							name: resp.fileName,
+						};
+
+
+						return Qiscus.qiscus.upload(obj, (error, progress, fileURL) => {
+							if (error) return console.log('error when uploading', error);
+							if (progress) return console.log(progress.percent);
+							if (fileURL != null) {
+								const payload = JSON.stringify({
+									type: 'image',
+									content: {
+										url: fileURL,
+										file_name: name,
+										caption: '',
+									},
+								});
+								Qiscus.qiscus
+									.sendComment(
+										this.state.room.id,
+										message.message,
+										message.uniqueId,
+										'custom', // message type
+										payload,
+									)
+									.then((resp) => {});
+							}
+						});
+					})
+					.catch((error) => {
+						console.log('Catch me if you can', error);
+					});
+			},
+		);
 	};
 
 	_addMessage = (message, scroll = false) =>
