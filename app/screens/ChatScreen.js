@@ -373,15 +373,6 @@ export default class ChatScreen extends React.Component {
 			.catch(this._handleError);
 	};
 
-	/*
-	mediaType: MediaType;
-  maxWidth?: number;
-  maxHeight?: number;
-  quality?: PhotoQuality;
-  videoQuality?: AndroidVideoOptions | iOSVideoOptions;
-  includeBase64?: boolean;
-	 */
-
 	_onSelectImage = () => {
 		this.setState(
 			{
@@ -389,55 +380,42 @@ export default class ChatScreen extends React.Component {
 			});
 		ImagePicker.launchImageLibrary(
 			{
-				mediaType: "photo",
-				includeBase64: false
+				mediaType: "mixed",
+				includeBase64: false,
+				selectionLimit: 0,
+				includeExtra: true
 			},
-			(resp) => {
-				if (resp.didCancel) return console.log('user cancel');
-				if (resp.errorMessage)
-					return console.log('error when getting file', resp.errorMessage);
-
-
-				const message = this._prepareFileMessage('File attachment', resp.uri);
-				this._addMessage(message, true)
-					.then(() => {
-						const name = resp.name;
-						const obj = {
-							uri: resp.uri,
-							type: resp.type,
-							name: resp.fileName,
-						};
-
-
-						return Qiscus.qiscus.upload(obj, (error, progress, fileURL) => {
-							if (error) return console.log('error when uploading', error);
-							if (progress) return console.log(progress.percent);
-							if (fileURL != null) {
-								const payload = JSON.stringify({
-									type: 'image',
-									content: {
-										url: fileURL,
-										file_name: name,
-										caption: '',
-									},
-								});
-								Qiscus.qiscus
-									.sendComment(
-										this.state.room.id,
-										message.message,
-										message.uniqueId,
-										'custom', // message type
-										payload,
-									)
-									.then((resp) => {});
-							}
-						});
-					})
-					.catch((error) => {
-						console.log('Catch me if you can', error);
-					});
-			},
-		);
+			null,
+		).then((resp) => {
+			if (resp.didCancel) return console.log('user cancel');
+			if (resp.errorMessage)
+				return console.log('error when getting file', resp.errorMessage);
+			resp.assets.map((responses) => {
+				let fileName;
+				if (!fileName) {
+					const _fileName = responses.uri.split('/').pop();
+					const _fileType = responses.type
+						? responses.type.split('/').pop()
+						: 'jpeg';
+					fileName = `${_fileName}.${_fileType}`;
+				}
+				const source = {
+					uri: responses.uri,
+					name: fileName,
+					type: responses.type,
+					size: responses.fileSize,
+				};
+				let sizeInMB = parseFloat((source.size / (1024 * 1024)).toFixed(2));
+				if (isNaN(sizeInMB) || sizeInMB === 0) {
+					return Promise.reject('File size required or empty');
+				}
+				if (!(sizeInMB <= 2)) {
+					// Example limitation
+					return Promise.reject('File size cannot over from 2mb and cannot empty');
+				}
+				this._onSendingImage(source)
+			})
+		}).catch(this._handleError);
 	};
 
 	_addMessage = (message, scroll = false) =>
@@ -562,6 +540,50 @@ export default class ChatScreen extends React.Component {
 							content: {
 								url: fileURL,
 								file_name: docs.name,
+								caption: '',
+							},
+						});
+						Qiscus.qiscus
+							.sendComment(
+								this.state.room.id,
+								message.message,
+								message.uniqueId,
+								'custom', // message type
+								payload,
+							)
+							.then((resp) => {
+								console.log('response', resp)
+							});
+					}
+				});
+			})
+			.catch((error) => {
+				console.log('Catch me if you can', error);
+			});
+	}
+
+	_onSendingImage(media) {
+		const message = this._prepareFileMessage('File attachment '+getFileExtension(media.name), media.uri);
+		this._addMessage(message, true)
+			.then(() => {
+				const obj = {
+					uri: media.uri,
+					type: media.type,
+					name: media.name,
+				};
+				return Qiscus.qiscus.upload(obj, (error, progress, fileURL) => {
+					if (error) {
+						return console.log('error when uploading', error);
+					}
+					if (progress) {
+						return console.log(progress.percent);
+					}
+					if (fileURL != null) {
+						const payload = JSON.stringify({
+							type: isImageFile(media.name) || isVideoFile(media.name) ? 'image' : media.type,
+							content: {
+								url: fileURL,
+								file_name: media.name,
 								caption: '',
 							},
 						});
