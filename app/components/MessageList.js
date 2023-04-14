@@ -14,6 +14,7 @@ import * as dateFns from 'date-fns';
 import * as Qiscus from 'qiscus';
 import MessageUpload from 'components/MessageUpload';
 import MessageCustom from 'components/MessageCustom';
+import MessageAttachment from "./MessageAttachment";
 
 class AnimatedSending extends React.Component {
   animation = new Animated.Value(0);
@@ -100,6 +101,9 @@ export default class MessageList extends React.Component {
     if (isCustomMessage && message.payload.type === 'image')
       content = this._renderCustomImageMessage(message);
 
+    if (isCustomMessage && message.payload.type !== 'image')
+      content = this._renderCustomMessageAttachment(message);
+
     return (
       <View style={containerStyle}>
         {showMeta && this._renderMessageMeta(message)}
@@ -118,6 +122,12 @@ export default class MessageList extends React.Component {
     );
   };
   _renderUploadMessage = (message) => <MessageUpload message={message} />;
+
+  _onDownload = (url, fileName) => {
+    console.log(url);
+  };
+  _renderCustomMessageAttachment = (message) => <MessageAttachment item={message} onDownload={this._onDownload} hideDownloadButton={false}/>;
+
   _renderCustomImageMessage = (message) => <MessageCustom message={message} />;
   _renderMessageMeta = (message) => {
     return (
