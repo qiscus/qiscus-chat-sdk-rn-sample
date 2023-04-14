@@ -232,6 +232,8 @@ export default class ChatScreen extends React.Component {
 		return ['Online presence', data];
 	};
 	_onNewMessage = (message) => {
+		console.log("halo")
+		console.log(message)
 		this.setState((state) => ({
 			messages: {
 				...state.messages,
@@ -367,7 +369,7 @@ export default class ChatScreen extends React.Component {
 					if (!(sizeInMB <= 20)) {
 						return Promise.reject('File size over');
 					}
-					this._onSendingFile(source)
+					this._onSendingFileOrMedia(source)
 				})
 			})
 			.catch(this._handleError);
@@ -413,7 +415,7 @@ export default class ChatScreen extends React.Component {
 					// Example limitation
 					return Promise.reject('File size cannot over from 2mb and cannot empty');
 				}
-				this._onSendingImage(source)
+				this._onSendingFileOrMedia(source)
 			})
 		}).catch(this._handleError);
 	};
@@ -517,15 +519,14 @@ export default class ChatScreen extends React.Component {
 		return this._sortMessage(Object.values(this.state.messages));
 	}
 
-	_onSendingFile(docs) {
-		console.log(docs);
-		const message = this._prepareFileMessage('File attachment '+getFileExtension(docs.name), docs.uri);
+	_onSendingFileOrMedia(mediaOrDocs) {
+		const message = this._prepareFileMessage('File attachment '+getFileExtension(mediaOrDocs.name), mediaOrDocs.uri);
 		this._addMessage(message, true)
 			.then(() => {
 				const obj = {
-					uri: docs.uri,
-					type: docs.type,
-					name: docs.name,
+					uri: mediaOrDocs.uri,
+					type: mediaOrDocs.type,
+					name: mediaOrDocs.name,
 				};
 				return Qiscus.qiscus.upload(obj, (error, progress, fileURL) => {
 					if (error) {
@@ -536,10 +537,10 @@ export default class ChatScreen extends React.Component {
 					}
 					if (fileURL != null) {
 						const payload = JSON.stringify({
-							type: isImageFile(docs.name) || isVideoFile(docs.name) ? 'image' : docs.type,
+							type: isImageFile(mediaOrDocs.name) || isVideoFile(mediaOrDocs.name) ? 'image' : mediaOrDocs.type,
 							content: {
 								url: fileURL,
-								file_name: docs.name,
+								file_name: mediaOrDocs.name,
 								caption: '',
 							},
 						});
@@ -552,7 +553,7 @@ export default class ChatScreen extends React.Component {
 								payload,
 							)
 							.then((resp) => {
-								console.log('response', resp)
+								this._updateMessage(message, resp);
 							});
 					}
 				});
@@ -562,49 +563,6 @@ export default class ChatScreen extends React.Component {
 			});
 	}
 
-	_onSendingImage(media) {
-		const message = this._prepareFileMessage('File attachment '+getFileExtension(media.name), media.uri);
-		this._addMessage(message, true)
-			.then(() => {
-				const obj = {
-					uri: media.uri,
-					type: media.type,
-					name: media.name,
-				};
-				return Qiscus.qiscus.upload(obj, (error, progress, fileURL) => {
-					if (error) {
-						return console.log('error when uploading', error);
-					}
-					if (progress) {
-						return console.log(progress.percent);
-					}
-					if (fileURL != null) {
-						const payload = JSON.stringify({
-							type: isImageFile(media.name) || isVideoFile(media.name) ? 'image' : media.type,
-							content: {
-								url: fileURL,
-								file_name: media.name,
-								caption: '',
-							},
-						});
-						Qiscus.qiscus
-							.sendComment(
-								this.state.room.id,
-								message.message,
-								message.uniqueId,
-								'custom', // message type
-								payload,
-							)
-							.then((resp) => {
-								console.log('response', resp)
-							});
-					}
-				});
-			})
-			.catch((error) => {
-				console.log('Catch me if you can', error);
-			});
-	}
 }
 
 const styles = StyleSheet.create(css`
