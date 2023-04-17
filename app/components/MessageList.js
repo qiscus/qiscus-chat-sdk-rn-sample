@@ -6,8 +6,9 @@ import {
   Image,
   FlatList,
   Animated,
-  TouchableWithoutFeedback,
+  TouchableWithoutFeedback, Platform, PermissionsAndroid,
 } from 'react-native';
+import RNFetchBlob from 'rn-fetch-blob';
 import debounce from 'lodash.debounce';
 
 import * as dateFns from 'date-fns';
@@ -15,6 +16,7 @@ import * as Qiscus from 'qiscus';
 import MessageUpload from 'components/MessageUpload';
 import MessageCustom from 'components/MessageCustom';
 import MessageAttachment from "./MessageAttachment";
+import toast from "../utils/toast";
 
 class AnimatedSending extends React.Component {
   animation = new Animated.Value(0);
@@ -49,6 +51,10 @@ class AnimatedSending extends React.Component {
 }
 
 export default class MessageList extends React.Component {
+
+  state = {
+    writePermissionGranted: false
+  };
   _messageListFormatter = (messages) => {
     const _messages = [];
 
@@ -123,8 +129,70 @@ export default class MessageList extends React.Component {
   };
   _renderUploadMessage = (message) => <MessageUpload message={message} />;
 
+  _requestWritePermission = async () => {
+    try {
+      if (Platform.OS === 'android') {
+        const fileGranted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+        );
+        if (fileGranted === PermissionsAndroid.RESULTS.GRANTED) {
+          this.setState(
+              {
+                writePermissionGranted: true,
+              })
+        } else {
+          this.setState(
+              {
+                writePermissionGranted: false,
+              })
+        }
+      }else {
+        this.setState(
+            {
+              writePermissionGranted: true,
+            })
+      }
+    } catch (err) {
+      console.warn(err);
+    }
+  };
+
+  _downloadFile = (url, fileName) => {
+    toast('Start downloading.');
+    const {dirs} = RNFetchBlob.fs;
+    RNFetchBlob.config({
+      fileCache: false,
+      path: dirs.DocumentDir + '/' + fileName,
+      addAndroidDownloads: {
+        useDownloadManager: true,
+        notification: true,
+        mediaScannable: true,
+        title: fileName,
+        path: `${dirs.DownloadDir}/${fileName}`,
+      },
+    })
+        .fetch('GET', url, {})
+        .then((res) => {
+          setTimeout(() => {
+            toast('Downloaded Successfully.');
+          }, 1000);
+        })
+        .catch((e) => {
+          toast('Download failed.');
+          //console.log(e);
+        });
+  };
   _onDownload = (url, fileName) => {
-    console.log(url);
+    if (Platform.OS === 'ios') {
+      this._downloadFile(url, fileName);
+    } else {
+      if (this.state.writePermissionGranted) {
+        this._downloadFile(url, fileName);
+      } else {
+        toast('No write permission given');
+        this._requestWritePermission();
+      }
+    }
   };
   _renderCustomMessageAttachment = (message) => <MessageAttachment item={message} onDownload={this._onDownload} hideDownloadButton={false}/>;
 
