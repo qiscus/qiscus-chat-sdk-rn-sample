@@ -36,6 +36,7 @@
     "react-navigation": "^4.4.4",
     "react-navigation-stack": "^2.10.4",
     "reactive.macro": "0.0.7",
+    "rn-fetch-blob": "^0.12.0",
     "xstream": "^11.14.0"
   },
   "devDependencies": {
