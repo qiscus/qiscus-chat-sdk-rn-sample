@@ -1,3 +1,4 @@
+// GLOBAL.XMLHttpRequest = GLOBAL.originalXMLHttpRequest || GLOBAL.XMLHttpRequest;
 import React, {useEffect} from 'react';
 import {StyleSheet, StatusBar, Platform, View, SafeAreaView} from 'react-native';
 import {createAppContainer} from 'react-navigation';
