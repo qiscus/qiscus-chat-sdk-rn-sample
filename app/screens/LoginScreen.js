@@ -1,4 +1,5 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import toast from '../utils/toast';
 import {
   View,
   StyleSheet,
@@ -45,7 +46,10 @@ export function LoginPage(props) {
     Qiscus.qiscus
       .setUser(userId, userKey, userId)
       .then((res) => console.log('success login', res))
-      .catch((err) => console.log('Failed login', err));
+      .catch((err) => {
+        console.log('Failed login', err);
+        toast('Login Failed: ' + 'Make sure your user id and user key is correct');
+      });
   }, [userId, userKey]);
 
   useEffect(() => {
@@ -55,45 +59,47 @@ export function LoginPage(props) {
   }, [isLogin]);
 
   return (
-    <ScrollView keyboardShouldPersistTaps="handled">
-      <View style={{height: '100%', width: '100%'}}>
-        <KeyboardAvoidingView enabled>
-          <ImageBackground
-            source={require('assets/bg-pattern.png')}
-            style={styles.background}>
-            <View style={styles.container}>
-              <Image source={require('assets/logo.png')} style={styles.logo} />
-              <View style={styles.form}>
-                <View style={styles.formGroup}>
-                  <Text style={styles.label}>User ID</Text>
-                  <TextInput
-                    style={styles.input}
-                    onChangeText={(text) => setUserId(text)}
-                    value={userId}
-                  />
-                </View>
-                <View style={styles.formGroup}>
-                  <Text style={styles.label}>User Key</Text>
-                  <TextInput
-                    style={styles.input}
-                    onChangeText={(text) => setUserKey(text)}
-                    value={userKey}
-                    secureTextEntry={true}
-                  />
-                </View>
-                <View style={styles.formGroup}>
-                  <TouchableOpacity
-                    style={styles.submitButton}
-                    onPress={onSubmit}>
-                    <Text style={styles.submitText}>Start</Text>
-                  </TouchableOpacity>
+    <>
+      <ScrollView keyboardShouldPersistTaps="handled">
+        <View style={{ height: '100%', width: '100%' }}>
+          <KeyboardAvoidingView enabled>
+            <ImageBackground
+              source={require('assets/bg-pattern.png')}
+              style={styles.background}>
+              <View style={styles.container}>
+                <Image source={require('assets/logo.png')} style={styles.logo} />
+                <View style={styles.form}>
+                  <View style={styles.formGroup}>
+                    <Text style={styles.label}>User ID</Text>
+                    <TextInput
+                      style={styles.input}
+                      onChangeText={(text) => setUserId(text)}
+                      value={userId}
+                    />
+                  </View>
+                  <View style={styles.formGroup}>
+                    <Text style={styles.label}>User Key</Text>
+                    <TextInput
+                      style={styles.input}
+                      onChangeText={(text) => setUserKey(text)}
+                      value={userKey}
+                      secureTextEntry={true}
+                    />
+                  </View>
+                  <View style={styles.formGroup}>
+                    <TouchableOpacity
+                      style={styles.submitButton}
+                      onPress={onSubmit}>
+                      <Text style={styles.submitText}>Start</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
-            </View>
-          </ImageBackground>
-        </KeyboardAvoidingView>
-      </View>
-    </ScrollView>
+            </ImageBackground>
+          </KeyboardAvoidingView>
+        </View>
+      </ScrollView>
+    </>
   );
 }
 
@@ -112,9 +118,9 @@ export default class LoginScreen extends React.Component {
         next: (data) => {
           AsyncStorage.setItem('qiscus', JSON.stringify(data))
             .then(() => {
-              this.setState({isLogin: true});
+              this.setState({ isLogin: true });
             })
-            .catch(() => {});
+            .catch(() => { });
         },
       });
   }
@@ -141,7 +147,7 @@ export default class LoginScreen extends React.Component {
   render() {
     return (
       <ScrollView keyboardShouldPersistTaps="handled">
-        <View style={{height: '100%', width: '100%'}}>
+        <View style={{ height: '100%', width: '100%' }}>
           <KeyboardAvoidingView enabled>
             <ImageBackground
               source={require('assets/bg-pattern.png')}
@@ -156,7 +162,7 @@ export default class LoginScreen extends React.Component {
                     <Text style={styles.label}>User ID</Text>
                     <TextInput
                       style={styles.input}
-                      onChangeText={(text) => this.setState({userId: text})}
+                      onChangeText={(text) => this.setState({ userId: text })}
                       value={this.state.userId}
                     />
                   </View>
@@ -164,7 +170,7 @@ export default class LoginScreen extends React.Component {
                     <Text style={styles.label}>User Key</Text>
                     <TextInput
                       style={styles.input}
-                      onChangeText={(text) => this.setState({userKey: text})}
+                      onChangeText={(text) => this.setState({ userKey: text })}
                       value={this.state.userKey}
                       secureTextEntry={true}
                     />
